@@ -1,11 +1,18 @@
 from fastapi import FastAPI
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
+from pathlib import Path
 from ai import ask_openai
 
 app = FastAPI()
 
-# lưu lịch sử trong RAM (đủ cho bản đầu)
 sessions = {}
+
+BASE_DIR = Path(__file__).parent
+
+@app.get("/", response_class=HTMLResponse)
+async def home():
+    return (BASE_DIR / "index.html").read_text(encoding="utf-8")
 
 class ChatRequest(BaseModel):
     session_id: str

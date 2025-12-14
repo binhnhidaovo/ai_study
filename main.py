@@ -29,4 +29,7 @@ def chat(req: ChatRequest):
 
     sessions[req.session_id] = history
 
-    return {"reply": reply}
+    return {
+        "reply": reply,
+        "history": history
+    }

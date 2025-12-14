@@ -1,39 +1,62 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>AI Study Assistant</title>
+    <meta charset="UTF-8">
+    <title>AI Study Chat</title>
+    <style>
+        body { font-family: Arial; background: #f5f5f5; }
+        #chat { max-width: 600px; margin: auto; background: white; padding: 15px; }
+        .msg { margin: 8px 0; }
+        .user { color: blue; }
+        .ai { color: green; }
+    </style>
 </head>
 <body>
-
-<h2>AI Study Assistant</h2>
 <div id="chat"></div>
 
-<input id="msg" placeholder="Ask something..." />
+<input id="input" placeholder="Type your message..." style="width:80%">
 <button onclick="send()">Send</button>
 
 <script>
-const session_id = crypto.randomUUID()
+const sessionId = localStorage.getItem("session_id")
+    || crypto.randomUUID()
+
+localStorage.setItem("session_id", sessionId)
+
+function speak(text) {
+    const utter = new SpeechSynthesisUtterance(text)
+    utter.lang = "en-US"
+    speechSynthesis.speak(utter)
+}
 
 async function send() {
-    const msg = document.getElementById("msg").value
-    document.getElementById("msg").value = ""
+    const input = document.getElementById("input")
+    const msg = input.value.trim()
+    if (!msg) return
 
-    document.getElementById("chat").innerHTML += `<p>👤 ${msg}</p>`
+    addMessage("You", msg, "user")
+    input.value = ""
 
     const res = await fetch("/chat", {
         method: "POST",
-        headers: {"Content-Type": "application/json"},
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-            session_id: session_id,
+            session_id: sessionId,
             message: msg
         })
     })
 
     const data = await res.json()
-    document.getElementById("chat").innerHTML += `<p>🤖 ${data.reply}</p>`
+    addMessage("AI", data.reply, "ai")
+    speak(data.reply)
+}
+
+function addMessage(who, text, cls) {
+    const div = document.createElement("div")
+    div.className = "msg " + cls
+    div.textContent = who + ": " + text
+    document.getElementById("chat").appendChild(div)
 }
 </script>
-
 </body>
 </html>

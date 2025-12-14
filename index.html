@@ -5,28 +5,37 @@
     <title>AI Study Chat</title>
     <style>
         body { font-family: Arial; background: #f5f5f5; }
-        #chat { max-width: 600px; margin: auto; background: white; padding: 15px; }
+        #chat { max-width: 600px; margin: auto; background: white; padding: 15px; height: 400px; overflow-y: auto; }
         .msg { margin: 8px 0; }
         .user { color: blue; }
         .ai { color: green; }
+        button { margin-left: 5px; }
     </style>
 </head>
 <body>
+
 <div id="chat"></div>
 
-<input id="input" placeholder="Type your message..." style="width:80%">
+<input id="input" placeholder="Type or speak..." style="width:70%">
 <button onclick="send()">Send</button>
+<button onclick="startVoice()">🎤</button>
 
 <script>
-const sessionId = localStorage.getItem("session_id")
-    || crypto.randomUUID()
-
+const sessionId = localStorage.getItem("session_id") || crypto.randomUUID()
 localStorage.setItem("session_id", sessionId)
 
+function addMessage(who, text, cls) {
+    const div = document.createElement("div")
+    div.className = "msg " + cls
+    div.textContent = who + ": " + text
+    document.getElementById("chat").appendChild(div)
+    div.scrollIntoView()
+}
+
 function speak(text) {
-    const utter = new SpeechSynthesisUtterance(text)
-    utter.lang = "en-US"
-    speechSynthesis.speak(utter)
+    const u = new SpeechSynthesisUtterance(text)
+    u.lang = "en-US"
+    speechSynthesis.speak(u)
 }
 
 async function send() {
@@ -51,12 +60,25 @@ async function send() {
     speak(data.reply)
 }
 
-function addMessage(who, text, cls) {
-    const div = document.createElement("div")
-    div.className = "msg " + cls
-    div.textContent = who + ": " + text
-    document.getElementById("chat").appendChild(div)
+function startVoice() {
+    if (!("webkitSpeechRecognition" in window)) {
+        alert("Trình duyệt không hỗ trợ voice input")
+        return
+    }
+
+    const recog = new webkitSpeechRecognition()
+    recog.lang = "en-US"
+    recog.continuous = false
+    recog.interimResults = false
+
+    recog.onresult = e => {
+        document.getElementById("input").value = e.results[0][0].transcript
+        send()
+    }
+
+    recog.start()
 }
 </script>
+
 </body>
 </html>

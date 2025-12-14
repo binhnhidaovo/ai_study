@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>AI Study Assistant</title>
+</head>
+<body>
+
+<h2>AI Study Assistant</h2>
+<div id="chat"></div>
+
+<input id="msg" placeholder="Ask something..." />
+<button onclick="send()">Send</button>
+
+<script>
+const session_id = crypto.randomUUID()
+
+async function send() {
+    const msg = document.getElementById("msg").value
+    document.getElementById("msg").value = ""
+
+    document.getElementById("chat").innerHTML += `<p>👤 ${msg}</p>`
+
+    const res = await fetch("/chat", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            session_id: session_id,
+            message: msg
+        })
+    })
+
+    const data = await res.json()
+    document.getElementById("chat").innerHTML += `<p>🤖 ${data.reply}</p>`
+}
+</script>
+
+</body>
+</html>

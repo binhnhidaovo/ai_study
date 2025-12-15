@@ -132,6 +132,7 @@ button:hover { opacity: 0.8; }
       <div id="input-box">
         <input id="input" placeholder="Send a message..." />
         <button onclick="send()">➤</button>
+        <button onclick="startVoice()">🎤</button>
       </div>
     </div>
   </div>
@@ -204,11 +205,36 @@ async function send() {
   const data = await res.json()
 
   chat.messages[chat.messages.length - 1].text = data.reply
+  speak(data.reply)
   save(); renderChat()
 }
 
 if (!currentChat) newChat()
 renderSidebar(); renderChat()
+function startVoice() {
+  if (!("webkitSpeechRecognition" in window)) {
+    alert("Voice input not supported");
+    return;
+  }
+  const r = new webkitSpeechRecognition();
+  r.lang = "en-US";
+  r.onresult = e => {
+    document.getElementById("input").value = e.results[0][0].transcript;
+    send();
+  };
+  r.start();
+}
+
+function speak(text) {
+  if (!('speechSynthesis' in window)) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'en-US';
+  u.rate = 1;
+  u.pitch = 1;
+  speechSynthesis.speak(u);
+}
+
 </script>
 </body>
 </html>

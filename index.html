@@ -5,6 +5,7 @@
 <title>AI Study Chat</title>
 
 <style>
+/* ===== GIỮ NGUYÊN CSS CỦA BẠN ===== */
 * { box-sizing: border-box; }
 
 body {
@@ -15,12 +16,8 @@ body {
   height: 100vh;
 }
 
-#container {
-  display: flex;
-  height: 100vh;
-}
+#container { display: flex; height: 100vh; }
 
-/* ===== SIDEBAR ===== */
 #sidebar {
   width: 260px;
   background: #202123;
@@ -40,11 +37,7 @@ body {
 }
 #new-chat:hover { background: #2a2b32; }
 
-#conversations {
-  flex: 1;
-  overflow-y: auto;
-  padding: 8px;
-}
+#conversations { flex: 1; overflow-y: auto; padding: 8px; }
 
 .conv {
   padding: 10px;
@@ -58,12 +51,7 @@ body {
 .conv:hover { background: #2a2b32; }
 .conv.active { background: #343541; }
 
-/* ===== CHAT ===== */
-#chat-area {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
+#chat-area { flex: 1; display: flex; flex-direction: column; }
 
 #chat {
   flex: 1;
@@ -80,27 +68,11 @@ body {
   border-radius: 999px;
   white-space: pre-wrap;
   width: fit-content;
-  animation: fadeIn 0.15s ease-out;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+.user { background: #10a37f; margin-left: auto; color: #fff; }
+.ai { background: #444654; margin-right: auto; color: #ececf1; }
 
-.user {
-  background: #10a37f;
-  margin-left: auto;
-  color: #fff;
-}
-
-.ai {
-  background: #444654;
-  margin-right: auto;
-  color: #ececf1;
-}
-
-/* ===== INPUT ===== */
 #input-area {
   border-top: 1px solid #2f2f38;
   padding: 16px;
@@ -133,19 +105,6 @@ button {
   cursor: pointer;
 }
 button:hover { opacity: 0.8; }
-
-/* ===== DOTS ===== */
-.dots span {
-  animation: blink 1.4s infinite both;
-}
-.dots span:nth-child(2) { animation-delay: .2s; }
-.dots span:nth-child(3) { animation-delay: .4s; }
-
-@keyframes blink {
-  0% { opacity: .2; }
-  20% { opacity: 1; }
-  100% { opacity: .2; }
-}
 </style>
 </head>
 
@@ -185,11 +144,10 @@ function save() {
   localStorage.setItem("voiceEnabled", voiceEnabled)
 }
 
-/* ===== SIDEBAR ===== */
+/* ===== RENDER ===== */
 function renderSidebar() {
   const box = document.getElementById("conversations")
   box.innerHTML = ""
-
   Object.keys(chats).forEach(id => {
     const div = document.createElement("div")
     div.className = "conv" + (id === currentChat ? " active" : "")
@@ -199,7 +157,6 @@ function renderSidebar() {
   })
 }
 
-/* ===== CHAT ===== */
 function renderChat() {
   const chatBox = document.getElementById("chat")
   chatBox.innerHTML = ""
@@ -208,19 +165,22 @@ function renderChat() {
   chats[currentChat].messages.forEach(m => {
     const div = document.createElement("div")
     div.className = "msg " + m.role
-
-    if (m.streaming && !m.text) {
-      div.innerHTML = '<span class="dots"><span>.</span><span>.</span><span>.</span></span>'
-    } else {
-      div.textContent = m.text
-    }
-
+    div.textContent = m.text
     chatBox.appendChild(div)
   })
-
   chatBox.scrollTop = chatBox.scrollHeight
 }
 
+function createMessage(role) {
+  const div = document.createElement("div")
+  div.className = "msg " + role
+  document.getElementById("chat").appendChild(div)
+  document.getElementById("chat").scrollTop =
+    document.getElementById("chat").scrollHeight
+  return div
+}
+
+/* ===== CHAT ===== */
 function newChat() {
   currentChat = crypto.randomUUID()
   chats[currentChat] = { title: "New chat", messages: [] }
@@ -230,26 +190,6 @@ function newChat() {
 function loadChat(id) {
   currentChat = id
   save(); renderSidebar(); renderChat()
-}
-
-/* ===== STREAMING WORD-BY-WORD ===== */
-function streamText(aiMsg, fullText) {
-  const words = fullText.split(/(\s+)/)
-  let i = 0
-
-  const timer = setInterval(() => {
-    aiMsg.streaming = false
-    aiMsg.text += words[i] || ""
-    renderChat()
-    save()
-    i++
-
-    if (i >= words.length) {
-      clearInterval(timer)
-      isGenerating = false
-      if (voiceEnabled) speak(fullText)
-    }
-  }, 40 + Math.random() * 30)
 }
 
 /* ===== SEND ===== */
@@ -267,11 +207,15 @@ async function send() {
   if (chat.messages.length === 0) chat.title = text.slice(0, 30)
 
   chat.messages.push({ role: "user", text })
+  save()
+  renderSidebar()
+  renderChat()
 
-  const aiMsg = { role: "ai", text: "", streaming: true }
+  const aiMsg = { role: "ai", text: "" }
   chat.messages.push(aiMsg)
+  save()
 
-  save(); renderSidebar(); renderChat()
+  const aiDiv = createMessage("ai")
 
   try {
     const res = await fetch("/chat", {
@@ -281,14 +225,31 @@ async function send() {
     })
 
     const data = await res.json()
-    streamText(aiMsg, data.reply || "")
+    streamText(aiMsg, aiDiv, data.reply || "")
 
   } catch {
-    aiMsg.text = "Error"
-    aiMsg.streaming = false
+    aiDiv.textContent = "Error"
     isGenerating = false
-    save(); renderChat()
   }
+}
+
+/* ===== STREAMING (KHÔNG GIẬT) ===== */
+function streamText(aiMsg, aiDiv, fullText) {
+  const words = fullText.split(/(\s+)/)
+  let i = 0
+
+  const timer = setInterval(() => {
+    aiMsg.text += words[i] || ""
+    aiDiv.textContent = aiMsg.text
+    i++
+
+    if (i >= words.length) {
+      clearInterval(timer)
+      isGenerating = false
+      save()
+      if (voiceEnabled) speak(fullText)
+    }
+  }, 35 + Math.random() * 20)
 }
 
 /* ===== VOICE INPUT ===== */
@@ -300,7 +261,7 @@ function startVoice() {
   }
 
   const r = new webkitSpeechRecognition()
-  r.lang = "en-US"
+  r.lang = navigator.language || "en-US"
   r.onresult = e => {
     document.getElementById("input").value = e.results[0][0].transcript
     send()
@@ -321,7 +282,7 @@ function speak(text) {
   speechSynthesis.speak(u)
 }
 
-/* ===== VOICE TOGGLE ===== */
+/* ===== TOGGLE VOICE ===== */
 function toggleVoice() {
   voiceEnabled = !voiceEnabled
   document.getElementById("voiceToggle").textContent = voiceEnabled ? "🔊" : "🔇"
@@ -330,7 +291,6 @@ function toggleVoice() {
 
 document.getElementById("voiceToggle").textContent = voiceEnabled ? "🔊" : "🔇"
 
-/* ===== INIT ===== */
 if (!currentChat) newChat()
 renderSidebar(); renderChat()
 </script>

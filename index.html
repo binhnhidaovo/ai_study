@@ -297,12 +297,30 @@ function startVoice() {
   r.start()
 }
 
-function speak(text) {
-  if (!('speechSynthesis' in window)) return
-  speechSynthesis.cancel()
-  const u = new SpeechSynthesisUtterance(text)
-  u.lang = /[à-ỹ]/i.test(text) ? "vi-VN" : "en-US"
-  speechSynthesis.speak(u)
+function isVietnamese(text) {
+  return /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i.test(text)
+}
+
+function startVoice() {
+  if (isGenerating) return
+  if (!('webkitSpeechRecognition' in window)) {
+    alert('Voice input not supported')
+    return
+  }
+
+  const r = new webkitSpeechRecognition()
+
+  // cho phép cả tiếng Việt + Anh
+  r.lang = 'vi-VN'
+  r.continuous = false
+  r.interimResults = false
+
+  r.onresult = e => {
+    document.getElementById('input').value = e.results[0][0].transcript
+    send()
+  }
+
+  r.start()
 }
 
 if (!currentChat) newChat()

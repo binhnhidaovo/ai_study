@@ -302,23 +302,38 @@ function startVoice() {
 speechSynthesis.onvoiceschanged = () => {}
 
 function speak(text) {
-  if (!('speechSynthesis' in window)) return
+  if (!("speechSynthesis" in window)) return
 
   const voices = speechSynthesis.getVoices()
-  let voice =
-    voices.find(v => v.lang === "vi-VN") ||
-    voices.find(v => v.lang.startsWith("vi")) ||
-    voices.find(v => v.lang === "en-US")
+
+  // Ưu tiên giọng Việt thật
+  let voice = voices.find(v =>
+    v.lang === "vi-VN" &&
+    (v.name.toLowerCase().includes("google") ||
+     v.name.toLowerCase().includes("vietnam"))
+  )
+
+  // Fallback: bất kỳ giọng vi nào
+  if (!voice) {
+    voice = voices.find(v => v.lang.startsWith("vi"))
+  }
+
+  // Nếu KHÔNG có giọng Việt → KHÔNG đọc
+  if (!voice) {
+    console.warn("⚠️ Không có giọng tiếng Việt trên trình duyệt")
+    return
+  }
 
   const u = new SpeechSynthesisUtterance(text)
-  u.lang = voice?.lang || "vi-VN"
-  if (voice) u.voice = voice
-  u.rate = 1
+  u.voice = voice
+  u.lang = "vi-VN"
+  u.rate = 0.95   // chậm hơn cho rõ tiếng Việt
   u.pitch = 1
 
   speechSynthesis.cancel()
   speechSynthesis.speak(u)
 }
+
 
 /* ===== TOGGLE VOICE ===== */
 function toggleVoice() {

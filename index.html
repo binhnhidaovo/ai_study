@@ -241,7 +241,7 @@ function streamText(aiMsg, fullText) {
     if (i >= words.length) {
       clearInterval(timer)
       isGenerating = false
-      speak(fullText)
+      if (voiceEnabled) speak(fullText)
     }
   }, 45)
 }
@@ -302,7 +302,9 @@ function startVoice() {
 
 /* ===== VOICE OUTPUT (AUTO VI / EN) ===== */
 
-// Kiểm tra có phải tiếng Việt không
+/* ===== VOICE OUTPUT (AUTO VI / EN) ===== */
+
+// Kiểm tra có phải tiếng Việt hay không
 function isVietnamese(text) {
   return /[àáạảãâăđêôơưèéẹẻẽìíịỉĩòóọỏõùúụủũỳýỵỷỹ]/i.test(text)
 }
@@ -326,11 +328,12 @@ function getBestVoice(lang) {
 // Hàm đọc text
 function speak(text) {
   if (!("speechSynthesis" in window)) return
+  if (!voiceEnabled) return
 
   const lang = isVietnamese(text) ? "vi" : "en"
   let voice = getBestVoice(lang)
 
-  // Chờ voices load nếu chưa có
+  // Nếu voices chưa load, chờ load xong rồi gọi lại
   if (!voice) {
     speechSynthesis.onvoiceschanged = () => speak(text)
     return
@@ -339,12 +342,12 @@ function speak(text) {
   const utter = new SpeechSynthesisUtterance(text)
   utter.voice = voice
   utter.lang = voice.lang
-  utter.rate = lang === "vi" ? 0.95 : 1   // tiếng Việt hơi chậm để rõ chữ
+  // Rate hơi chậm để tiếng Việt rõ hơn, tiếng Anh bình thường
+  utter.rate = lang === "vi" ? 0.95 : 1
   utter.pitch = 1
 
   speechSynthesis.speak(utter)
 }
-
 
 /* ===== TOGGLE VOICE ===== */
 function toggleVoice() {

@@ -20,7 +20,6 @@ body {
   height: 100vh;
 }
 
-/* ===== SIDEBAR ===== */
 #sidebar {
   width: 260px;
   background: #202123;
@@ -58,7 +57,6 @@ body {
 .conv:hover { background: #2a2b32; }
 .conv.active { background: #343541; }
 
-/* ===== CHAT AREA ===== */
 #chat-area {
   flex: 1;
   display: flex;
@@ -69,18 +67,19 @@ body {
   flex: 1;
   overflow-y: auto;
   padding: 24px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-/* ===== CHAT BUBBLES ===== */
 .msg {
-  display: inline-block;
   max-width: 70%;
-  padding: 12px 18px;
-  border-radius: 18px;
-  margin-bottom: 14px;
+  padding: 14px 22px;
+  border-radius: 999px;
   white-space: pre-wrap;
-  line-height: 1.6;
-  animation: fadeIn 0.15s ease-out;
+
+  width: fit-content;
 }
 
 @keyframes fadeIn {
@@ -102,7 +101,6 @@ body {
   border-bottom-left-radius: 6px;
 }
 
-/* ===== INPUT ===== */
 #input-area {
   border-top: 1px solid #2f2f38;
   padding: 16px;
@@ -136,7 +134,6 @@ button {
 }
 button:hover { opacity: 0.8; }
 
-/* ===== DOTS ===== */
 .dots span {
   animation: blink 1.4s infinite both;
 }
@@ -197,7 +194,6 @@ function renderSidebar() {
   })
 }
 
-/* ===== CHAT ===== */
 function renderChat() {
   const chatBox = document.getElementById("chat")
   chatBox.innerHTML = ""
@@ -219,7 +215,6 @@ function renderChat() {
   chatBox.scrollTop = chatBox.scrollHeight
 }
 
-/* ===== CHAT LOGIC ===== */
 function newChat() {
   currentChat = crypto.randomUUID()
   chats[currentChat] = { title: "New chat", messages: [] }
@@ -286,7 +281,6 @@ async function send() {
   }
 }
 
-/* ===== VOICE INPUT ===== */
 function startVoice() {
   if (isGenerating) return
   if (!('webkitSpeechRecognition' in window)) {
@@ -295,7 +289,7 @@ function startVoice() {
   }
 
   const r = new webkitSpeechRecognition()
-  r.lang = "vi-VN"
+  r.lang = navigator.language || "en-US"
   r.onresult = e => {
     document.getElementById("input").value = e.results[0][0].transcript
     send()
@@ -303,12 +297,11 @@ function startVoice() {
   r.start()
 }
 
-/* ===== TEXT TO SPEECH ===== */
 function speak(text) {
   if (!('speechSynthesis' in window)) return
   speechSynthesis.cancel()
   const u = new SpeechSynthesisUtterance(text)
-  u.lang = "vi-VN"
+  u.lang = /[à-ỹ]/i.test(text) ? "vi-VN" : "en-US"
   speechSynthesis.speak(u)
 }
 

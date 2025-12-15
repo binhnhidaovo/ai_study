@@ -5,10 +5,18 @@ from pathlib import Path
 from ai import ask_openai
 
 app = FastAPI()
+BASE_DIR = Path(__file__).parent
 
 sessions = {}
 
-BASE_DIR = Path(__file__).parent
+SYSTEM_PROMPT = {
+    "role": "system",
+    "content": (
+        "Bạn là một trợ lý AI giống ChatGPT. "
+        "Ưu tiên trả lời bằng tiếng Việt tự nhiên, rõ ràng, dễ hiểu. "
+        "Chỉ dùng tiếng Anh khi người dùng yêu cầu."
+    )
+}
 
 @app.get("/", response_class=HTMLResponse)
 async def home():
@@ -20,16 +28,25 @@ class ChatRequest(BaseModel):
 
 @app.post("/chat")
 def chat(req: ChatRequest):
-    history = sessions.get(req.session_id, [])
+    history = sessions.get(req.session_id)
+
+    if not history:
+        history = [SYSTEM_PROMPT]
+
+    history.append({
+        "role": "user",
+        "content": req.message
+    })
 
     reply = ask_openai(req.message, history)
 
-    history.append({"role": "user", "content": req.message})
-    history.append({"role": "assistant", "content": reply})
+    history.append({
+        "role": "assistant",
+        "content": reply
+    })
 
     sessions[req.session_id] = history
 
     return {
-        "reply": reply,
-        "history": history
+        "reply": reply
     }

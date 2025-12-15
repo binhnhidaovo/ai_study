@@ -18,7 +18,6 @@ body {
   height: 100vh;
 }
 
-/* ===== SIDEBAR ===== */
 #sidebar {
   width: 260px;
   background: #202123;
@@ -56,7 +55,6 @@ body {
 .conv:hover { background: #2a2b32; }
 .conv.active { background: #343541; }
 
-/* ===== CHAT AREA ===== */
 #chat-area {
   flex: 1;
   display: flex;
@@ -69,13 +67,16 @@ body {
   padding: 24px;
 }
 
-.msg {
+..msg {
   max-width: 70%;
+  width: fit-content;       
+  display: inline-block;     
   margin-bottom: 14px;
   padding: 14px 22px;
   border-radius: 999px;
   line-height: 1.6;
   white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .user {
@@ -237,12 +238,11 @@ async function send() {
     const full = data.reply || ""
     let i = 0
 
-    aiMsg.text = ""   // ✅ đảm bảo luôn là string
-
+    aiMsg.text = ""   
     const timer = setInterval(() => {
       aiMsg.text += full[i] || ""
       renderChat()
-      save()           // ✅ lưu khi đang streaming
+      save()           
       i++
 
       if (i >= full.length) {

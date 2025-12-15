@@ -241,7 +241,7 @@ function streamText(aiMsg, fullText) {
     if (i >= words.length) {
       clearInterval(timer)
       isGenerating = false
-      if (voiceEnabled) speak(fullText)
+      speak(fullText)
     }
   }, 45)
 }
@@ -300,49 +300,51 @@ function startVoice() {
 
 /* ===== VOICE OUTPUT (AUTO VI / EN) ===== */
 
+/* ===== VOICE OUTPUT (AUTO VI / EN) ===== */
+
+// Kiểm tra có phải tiếng Việt không
 function isVietnamese(text) {
   return /[àáạảãâăđêôơưèéẹẻẽìíịỉĩòóọỏõùúụủũỳýỵỷỹ]/i.test(text)
 }
 
+// Lấy voice tốt nhất theo ngôn ngữ
 function getBestVoice(lang) {
   const voices = speechSynthesis.getVoices()
   if (!voices.length) return null
 
   if (lang === "vi") {
-    return (
-      voices.find(v => v.lang === "vi-VN" && v.name.toLowerCase().includes("google")) ||
-      voices.find(v => v.lang.startsWith("vi"))
-    )
+    // ưu tiên Google Vietnamese
+    return voices.find(v => v.lang === "vi-VN" && v.name.toLowerCase().includes("google"))
+           || voices.find(v => v.lang.startsWith("vi"))
   }
 
   // English
-  return (
-    voices.find(v => v.lang.startsWith("en") && v.name.toLowerCase().includes("google")) ||
-    voices.find(v => v.lang.startsWith("en"))
-  )
+  return voices.find(v => v.lang.startsWith("en") && v.name.toLowerCase().includes("google"))
+         || voices.find(v => v.lang.startsWith("en"))
 }
 
+// Hàm đọc text
 function speak(text) {
   if (!("speechSynthesis" in window)) return
-  if (!voiceEnabled) return
 
   const lang = isVietnamese(text) ? "vi" : "en"
   let voice = getBestVoice(lang)
 
-  // ⏳ Chờ voice load
+  // Chờ voices load nếu chưa có
   if (!voice) {
     speechSynthesis.onvoiceschanged = () => speak(text)
     return
   }
 
-  const u = new SpeechSynthesisUtterance(text)
-  u.voice = voice
-  u.lang = voice.lang
-  u.rate = lang === "vi" ? 0.95 : 1
-  u.pitch = 1
+  const utter = new SpeechSynthesisUtterance(text)
+  utter.voice = voice
+  utter.lang = voice.lang
+  utter.rate = lang === "vi" ? 0.95 : 1   // tiếng Việt hơi chậm để rõ chữ
+  utter.pitch = 1
 
-  speechSynthesis.speak(u)
+  speechSynthesis.speak(utter)
 }
+
 
 /* ===== TOGGLE VOICE ===== */
 function toggleVoice() {

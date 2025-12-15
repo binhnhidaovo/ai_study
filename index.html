@@ -70,16 +70,26 @@ body {
 }
 
 .msg {
-  max-width: 800px;
-  margin: 0 auto 20px;
-  padding: 16px 20px;
-  border-radius: 8px;
+  max-width: 70%;
+  margin-bottom: 14px;
+  padding: 14px 18px;
+  border-radius: 18px;
   line-height: 1.6;
   white-space: pre-wrap;
 }
 
-.user { background: #40414f; }
-.ai { background: #444654; }
+.user {
+  background: #10a37f;
+  margin-left: auto;
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+.ai {
+  background: #444654;
+  margin-right: auto;
+  color: #ececf1;
+  border-bottom-left-radius: 4px;
+}
 
 /* ===== INPUT ===== */
 #input-area {
@@ -194,7 +204,7 @@ async function send() {
   if (chat.messages.length === 0) chat.title = text.slice(0, 30)
 
   chat.messages.push({ role: "user", text })
-  chat.messages.push({ role: "ai", text: "..." })
+  chat.messages.push({ role: "ai", text: "…" })
   save(); renderSidebar(); renderChat()
 
   const res = await fetch("/chat", {

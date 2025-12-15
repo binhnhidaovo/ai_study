@@ -1,157 +1,214 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>AI Study Chat Mini</title>
+<meta charset="UTF-8" />
+<title>AI Study Chat</title>
 <style>
 * { box-sizing: border-box; }
 body {
-    margin: 0;
-    background: #202123;
-    color: #ececf1;
-    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  font-family: "Segoe UI", Tahoma, sans-serif;
+  background: #343541;
+  color: #ececf1;
+  height: 100vh;
 }
-#app {
-    max-width: 700px;
-    margin: auto;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    border: 1px solid #444;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-    background: #202123;
+
+#container {
+  display: flex;
+  height: 100vh;
 }
+
+/* ===== SIDEBAR ===== */
+#sidebar {
+  width: 260px;
+  background: #202123;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #2f2f38;
+}
+
+#new-chat {
+  margin: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #4d4d4f;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+}
+#new-chat:hover { background: #2a2b32; }
+
+#conversations {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.conv {
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #d9d9e3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.conv:hover { background: #2a2b32; }
+.conv.active { background: #343541; }
+
+/* ===== CHAT AREA ===== */
+#chat-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
 #chat {
-    flex: 1;
-    overflow-y: auto;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    scroll-behavior: smooth;
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
 }
+
 .msg {
-    max-width: 70%;
-    padding: 12px 16px;
-    border-radius: 12px;
-    line-height: 1.5;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    transition: all 0.2s ease;
-    font-size: 15px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  max-width: 800px;
+  margin: 0 auto 20px;
+  padding: 16px 20px;
+  border-radius: 8px;
+  line-height: 1.6;
+  white-space: pre-wrap;
 }
-.user {
-    background: #10a37f;
-    align-self: flex-end;
-    color: #fff;
-    border-bottom-right-radius: 2px;
-}
-.ai {
-    background: #2c2c34;
-    align-self: flex-start;
-    color: #ececf1;
-    border-bottom-left-radius: 2px;
-}
+
+.user { background: #40414f; }
+.ai { background: #444654; }
+
+/* ===== INPUT ===== */
 #input-area {
-    display: flex;
-    padding: 15px;
-    border-top: 1px solid #444;
-    background: #2b2b33;
+  border-top: 1px solid #2f2f38;
+  padding: 16px;
 }
+
+#input-box {
+  max-width: 800px;
+  margin: auto;
+  display: flex;
+  background: #40414f;
+  border-radius: 8px;
+}
+
 #input {
-    flex: 1;
-    padding: 12px;
-    border-radius: 8px;
-    border: none;
-    outline: none;
-    font-size: 16px;
-    background: #1e1e24;
-    color: #ececf1;
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 14px;
+  color: #fff;
+  font-size: 15px;
 }
+
 button {
-    margin-left: 10px;
-    padding: 0 16px;
-    border-radius: 8px;
-    border: none;
-    font-size: 18px;
-    cursor: pointer;
-    background-color: #10a37f;
-    color: #fff;
-    transition: 0.2s;
+  background: transparent;
+  border: none;
+  color: #10a37f;
+  font-size: 20px;
+  padding: 0 14px;
+  cursor: pointer;
 }
-button:hover { opacity: 0.9; }
-.msg:hover { transform: translateY(-2px); }
+button:hover { opacity: 0.8; }
 </style>
 </head>
 <body>
-<div id="app">
+<div id="container">
+
+  <!-- SIDEBAR -->
+  <div id="sidebar">
+    <button id="new-chat" onclick="newChat()">+ New chat</button>
+    <div id="conversations"></div>
+  </div>
+
+  <!-- CHAT -->
+  <div id="chat-area">
     <div id="chat"></div>
     <div id="input-area">
-        <input id="input" placeholder="Send a message..." autocomplete="off">
+      <div id="input-box">
+        <input id="input" placeholder="Send a message..." />
         <button onclick="send()">➤</button>
-        <button onclick="startVoice()">🎤</button>
+      </div>
     </div>
-</div>
-<script>
-const sessionId = localStorage.getItem("session_id") || crypto.randomUUID()
-localStorage.setItem("session_id", sessionId)
+  </div>
 
-function addMessage(text, cls) {
-    const div = document.createElement("div")
-    div.className = "msg " + cls
-    div.textContent = text
-    document.getElementById("chat").appendChild(div)
-    div.scrollIntoView({ behavior: "smooth" })
+</div>
+
+<script>
+let chats = JSON.parse(localStorage.getItem("chats") || "{}")
+let currentChat = localStorage.getItem("currentChat") || null
+
+function save() {
+  localStorage.setItem("chats", JSON.stringify(chats))
+  localStorage.setItem("currentChat", currentChat)
 }
 
-function speak(text) {
-    const u = new SpeechSynthesisUtterance(text)
-    u.lang = "en-US"
-    speechSynthesis.speak(u)
+function renderSidebar() {
+  const box = document.getElementById("conversations")
+  box.innerHTML = ""
+  Object.keys(chats).forEach(id => {
+    const div = document.createElement("div")
+    div.className = "conv" + (id === currentChat ? " active" : "")
+    div.textContent = chats[id].title || "New chat"
+    div.onclick = () => loadChat(id)
+    box.appendChild(div)
+  })
+}
+
+function renderChat() {
+  const chat = document.getElementById("chat")
+  chat.innerHTML = ""
+  if (!currentChat) return
+  chats[currentChat].messages.forEach(m => {
+    const div = document.createElement("div")
+    div.className = "msg " + m.role
+    div.textContent = m.text
+    chat.appendChild(div)
+  })
+  chat.scrollTop = chat.scrollHeight
+}
+
+function newChat() {
+  currentChat = crypto.randomUUID()
+  chats[currentChat] = { title: "New chat", messages: [] }
+  save(); renderSidebar(); renderChat()
+}
+
+function loadChat(id) {
+  currentChat = id
+  save(); renderSidebar(); renderChat()
 }
 
 async function send() {
-    const input = document.getElementById("input")
-    const msg = input.value.trim()
-    if (!msg) return
-    addMessage(msg, "user")
-    input.value = ""
-    const typingDiv = document.createElement("div")
-    typingDiv.className = "msg ai"
-    typingDiv.textContent = "..."
-    document.getElementById("chat").appendChild(typingDiv)
-    typingDiv.scrollIntoView({ behavior: "smooth" })
-    try {
-        const res = await fetch("/chat", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ session_id: sessionId, message: msg })
-        })
-        const data = await res.json()
-        typingDiv.textContent = data.reply
-        speak(data.reply)
-        typingDiv.scrollIntoView({ behavior: "smooth" })
-    } catch {
-        typingDiv.textContent = "Error: Could not get response."
-    }
+  const input = document.getElementById("input")
+  const text = input.value.trim()
+  if (!text || !currentChat) return
+  input.value = ""
+
+  const chat = chats[currentChat]
+  if (chat.messages.length === 0) chat.title = text.slice(0, 30)
+
+  chat.messages.push({ role: "user", text })
+  chat.messages.push({ role: "ai", text: "..." })
+  save(); renderSidebar(); renderChat()
+
+  const res = await fetch("/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message: text, session_id: currentChat })
+  })
+  const data = await res.json()
+
+  chat.messages[chat.messages.length - 1].text = data.reply
+  save(); renderChat()
 }
 
-function startVoice() {
-    if (!("webkitSpeechRecognition" in window)) {
-        alert("Voice input not supported")
-        return
-    }
-    const r = new webkitSpeechRecognition()
-    r.lang = "en-US"
-    r.onresult = e => {
-        document.getElementById("input").value = e.results[0][0].transcript
-        send()
-    }
-    r.start()
-}
+if (!currentChat) newChat()
+renderSidebar(); renderChat()
 </script>
 </body>
 </html>

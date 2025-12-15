@@ -191,7 +191,6 @@ function renderChat() {
   })
   chatBox.scrollTop = chatBox.scrollHeight
 }
-}
 
 function newChat() {
   currentChat = crypto.randomUUID()
@@ -241,14 +240,12 @@ async function send() {
     if (i >= full.length) {
       clearInterval(timer)
       msg.streaming = false
+      isGenerating = false
       speak(full)
-      isGenerating = false
-    }
-      isGenerating = false
-    }
+      save()
+      renderChat()
     }
   }, 25)
-()
 
   chat.messages[chat.messages.length - 1].text = data.reply
   speak(data.reply)

@@ -298,42 +298,51 @@ function startVoice() {
   r.start()
 }
 
-/* ===== VOICE OUTPUT (FIX VIETNAMESE) ===== */
-speechSynthesis.onvoiceschanged = () => {}
+/* ===== VOICE OUTPUT (AUTO VI / EN) ===== */
+
+function isVietnamese(text) {
+  return /[àáạảãâăđêôơưèéẹẻẽìíịỉĩòóọỏõùúụủũỳýỵỷỹ]/i.test(text)
+}
+
+function getBestVoice(lang) {
+  const voices = speechSynthesis.getVoices()
+  if (!voices.length) return null
+
+  if (lang === "vi") {
+    return (
+      voices.find(v => v.lang === "vi-VN" && v.name.toLowerCase().includes("google")) ||
+      voices.find(v => v.lang.startsWith("vi"))
+    )
+  }
+
+  // English
+  return (
+    voices.find(v => v.lang.startsWith("en") && v.name.toLowerCase().includes("google")) ||
+    voices.find(v => v.lang.startsWith("en"))
+  )
+}
 
 function speak(text) {
   if (!("speechSynthesis" in window)) return
+  if (!voiceEnabled) return
 
-  const voices = speechSynthesis.getVoices()
+  const lang = isVietnamese(text) ? "vi" : "en"
+  let voice = getBestVoice(lang)
 
-  // Ưu tiên giọng Việt thật
-  let voice = voices.find(v =>
-    v.lang === "vi-VN" &&
-    (v.name.toLowerCase().includes("google") ||
-     v.name.toLowerCase().includes("vietnam"))
-  )
-
-  // Fallback: bất kỳ giọng vi nào
+  // ⏳ Chờ voice load
   if (!voice) {
-    voice = voices.find(v => v.lang.startsWith("vi"))
-  }
-
-  // Nếu KHÔNG có giọng Việt → KHÔNG đọc
-  if (!voice) {
-    console.warn("⚠️ Không có giọng tiếng Việt trên trình duyệt")
+    speechSynthesis.onvoiceschanged = () => speak(text)
     return
   }
 
   const u = new SpeechSynthesisUtterance(text)
   u.voice = voice
-  u.lang = "vi-VN"
-  u.rate = 0.95   // chậm hơn cho rõ tiếng Việt
+  u.lang = voice.lang
+  u.rate = lang === "vi" ? 0.95 : 1
   u.pitch = 1
 
-  speechSynthesis.cancel()
   speechSynthesis.speak(u)
 }
-
 
 /* ===== TOGGLE VOICE ===== */
 function toggleVoice() {

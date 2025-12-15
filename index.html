@@ -298,52 +298,62 @@ function startVoice() {
   r.start()
 }
 
-/* ===== VOICE OUTPUT (AUTO VI / EN) ===== */
+let cachedVoices = []
 
-/* ===== VOICE OUTPUT (AUTO VI / EN) ===== */
+function loadVoices() {
+  cachedVoices = speechSynthesis.getVoices()
+  if (!cachedVoices.length) {
+    speechSynthesis.onvoiceschanged = () => {
+      cachedVoices = speechSynthesis.getVoices()
+    }
+  }
+}
 
-/* ===== VOICE OUTPUT (AUTO VI / EN) ===== */
+loadVoices()
 
-// Kiểm tra có phải tiếng Việt hay không
 function isVietnamese(text) {
   return /[àáạảãâăđêôơưèéẹẻẽìíịỉĩòóọỏõùúụủũỳýỵỷỹ]/i.test(text)
 }
 
-// Lấy voice tốt nhất theo ngôn ngữ
 function getBestVoice(lang) {
-  const voices = speechSynthesis.getVoices()
-  if (!voices.length) return null
+  if (!cachedVoices.length) return null
 
   if (lang === "vi") {
-    // ưu tiên Google Vietnamese
-    return voices.find(v => v.lang === "vi-VN" && v.name.toLowerCase().includes("google"))
-           || voices.find(v => v.lang.startsWith("vi"))
+    return (
+      cachedVoices.find(v => v.lang === "vi-VN") ||
+      cachedVoices.find(v => v.lang.startsWith("vi")) ||
+      cachedVoices.find(v => /vietnam/i.test(v.name))
+    )
   }
 
-  // English
-  return voices.find(v => v.lang.startsWith("en") && v.name.toLowerCase().includes("google"))
-         || voices.find(v => v.lang.startsWith("en"))
+  return (
+    cachedVoices.find(v => v.lang.startsWith("en") && /google/i.test(v.name)) ||
+    cachedVoices.find(v => v.lang.startsWith("en"))
+  )
 }
 
 // Hàm đọc text
 function speak(text) {
   if (!("speechSynthesis" in window)) return
   if (!voiceEnabled) return
+  if (!text || !text.trim()) return
+
+  speechSynthesis.cancel() // tránh chồng tiếng
 
   const lang = isVietnamese(text) ? "vi" : "en"
-  let voice = getBestVoice(lang)
-
-  // Nếu voices chưa load, chờ load xong rồi gọi lại
-  if (!voice) {
-    speechSynthesis.onvoiceschanged = () => speak(text)
-    return
-  }
+  const voice = getBestVoice(lang)
 
   const utter = new SpeechSynthesisUtterance(text)
-  utter.voice = voice
-  utter.lang = voice.lang
-  // Rate hơi chậm để tiếng Việt rõ hơn, tiếng Anh bình thường
-  utter.rate = lang === "vi" ? 0.95 : 1
+
+  if (voice) {
+    utter.voice = voice
+    utter.lang = voice.lang
+  } else {
+    // fallback: vẫn đọc, không bị im lặng
+    utter.lang = lang === "vi" ? "vi-VN" : "en-US"
+  }
+
+  utter.rate = lang === "vi" ? 0.9 : 1
   utter.pitch = 1
 
   speechSynthesis.speak(utter)

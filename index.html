@@ -3,8 +3,10 @@
 <head>
 <meta charset="UTF-8" />
 <title>AI Study Chat</title>
+
 <style>
 * { box-sizing: border-box; }
+
 body {
   margin: 0;
   font-family: "Segoe UI", Tahoma, sans-serif;
@@ -18,6 +20,7 @@ body {
   height: 100vh;
 }
 
+/* ===== SIDEBAR ===== */
 #sidebar {
   width: 260px;
   background: #202123;
@@ -55,6 +58,7 @@ body {
 .conv:hover { background: #2a2b32; }
 .conv.active { background: #343541; }
 
+/* ===== CHAT AREA ===== */
 #chat-area {
   flex: 1;
   display: flex;
@@ -67,22 +71,35 @@ body {
   padding: 24px;
 }
 
+/* ===== CHAT BUBBLES ===== */
 .msg {
+  display: inline-block;
   max-width: 70%;
-  padding: 14px 22px;
-  border-radius: 999px;
+  padding: 12px 18px;
+  border-radius: 18px;
+  margin-bottom: 14px;
   white-space: pre-wrap;
+  line-height: 1.6;
+  animation: fadeIn 0.15s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .user {
   background: #10a37f;
   margin-left: auto;
   color: #fff;
+  border-bottom-right-radius: 6px;
 }
+
 .ai {
   background: #444654;
   margin-right: auto;
   color: #ececf1;
+  border-bottom-left-radius: 6px;
 }
 
 /* ===== INPUT ===== */
@@ -119,11 +136,13 @@ button {
 }
 button:hover { opacity: 0.8; }
 
+/* ===== DOTS ===== */
 .dots span {
   animation: blink 1.4s infinite both;
 }
 .dots span:nth-child(2) { animation-delay: .2s; }
 .dots span:nth-child(3) { animation-delay: .4s; }
+
 @keyframes blink {
   0% { opacity: .2; }
   20% { opacity: 1; }
@@ -131,6 +150,7 @@ button:hover { opacity: 0.8; }
 }
 </style>
 </head>
+
 <body>
 <div id="container">
 
@@ -141,6 +161,7 @@ button:hover { opacity: 0.8; }
 
   <div id="chat-area">
     <div id="chat"></div>
+
     <div id="input-area">
       <div id="input-box">
         <input id="input" placeholder="Send a message..." />
@@ -149,6 +170,7 @@ button:hover { opacity: 0.8; }
       </div>
     </div>
   </div>
+
 </div>
 
 <script>
@@ -161,9 +183,11 @@ function save() {
   localStorage.setItem("currentChat", currentChat)
 }
 
+/* ===== SIDEBAR ===== */
 function renderSidebar() {
   const box = document.getElementById("conversations")
   box.innerHTML = ""
+
   Object.keys(chats).forEach(id => {
     const div = document.createElement("div")
     div.className = "conv" + (id === currentChat ? " active" : "")
@@ -173,6 +197,7 @@ function renderSidebar() {
   })
 }
 
+/* ===== CHAT ===== */
 function renderChat() {
   const chatBox = document.getElementById("chat")
   chatBox.innerHTML = ""
@@ -181,16 +206,20 @@ function renderChat() {
   chats[currentChat].messages.forEach(m => {
     const div = document.createElement("div")
     div.className = "msg " + m.role
-    if (m.streaming) {
+
+    if (m.streaming && !m.text) {
       div.innerHTML = '<span class="dots"><span>.</span><span>.</span><span>.</span></span>'
     } else {
       div.textContent = m.text
     }
+
     chatBox.appendChild(div)
   })
+
   chatBox.scrollTop = chatBox.scrollHeight
 }
 
+/* ===== CHAT LOGIC ===== */
 function newChat() {
   currentChat = crypto.randomUUID()
   chats[currentChat] = { title: "New chat", messages: [] }
@@ -233,22 +262,21 @@ async function send() {
     const full = data.reply || ""
     let i = 0
 
-    aiMsg.text = ""   
+    const speed = Math.max(10, 30 - full.length / 20)
+
     const timer = setInterval(() => {
+      aiMsg.streaming = false
       aiMsg.text += full[i] || ""
       renderChat()
-      save()           
       i++
 
       if (i >= full.length) {
         clearInterval(timer)
-        aiMsg.streaming = false
         isGenerating = false
         speak(full)
         save()
-        renderChat()
       }
-    }, 25)
+    }, speed)
 
   } catch (e) {
     aiMsg.text = "Error"
@@ -258,27 +286,29 @@ async function send() {
   }
 }
 
-
+/* ===== VOICE INPUT ===== */
 function startVoice() {
   if (isGenerating) return
   if (!('webkitSpeechRecognition' in window)) {
-    alert('Voice input not supported')
+    alert("Voice input not supported")
     return
   }
+
   const r = new webkitSpeechRecognition()
-  r.lang = 'en-US'
+  r.lang = "vi-VN"
   r.onresult = e => {
-    document.getElementById('input').value = e.results[0][0].transcript
+    document.getElementById("input").value = e.results[0][0].transcript
     send()
   }
   r.start()
 }
 
+/* ===== TEXT TO SPEECH ===== */
 function speak(text) {
   if (!('speechSynthesis' in window)) return
   speechSynthesis.cancel()
   const u = new SpeechSynthesisUtterance(text)
-  u.lang = 'en-US'
+  u.lang = "vi-VN"
   speechSynthesis.speak(u)
 }
 

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
 <meta charset="UTF-8" />
 <title>AI Study Chat</title>
@@ -20,6 +20,7 @@ body {
   height: 100vh;
 }
 
+/* ===== SIDEBAR ===== */
 #sidebar {
   width: 260px;
   background: #202123;
@@ -57,6 +58,7 @@ body {
 .conv:hover { background: #2a2b32; }
 .conv.active { background: #343541; }
 
+/* ===== CHAT ===== */
 #chat-area {
   flex: 1;
   display: flex;
@@ -67,7 +69,6 @@ body {
   flex: 1;
   overflow-y: auto;
   padding: 24px;
-
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -78,8 +79,8 @@ body {
   padding: 14px 22px;
   border-radius: 999px;
   white-space: pre-wrap;
-
   width: fit-content;
+  animation: fadeIn 0.15s ease-out;
 }
 
 @keyframes fadeIn {
@@ -91,16 +92,15 @@ body {
   background: #10a37f;
   margin-left: auto;
   color: #fff;
-  border-bottom-right-radius: 6px;
 }
 
 .ai {
   background: #444654;
   margin-right: auto;
   color: #ececf1;
-  border-bottom-left-radius: 6px;
 }
 
+/* ===== INPUT ===== */
 #input-area {
   border-top: 1px solid #2f2f38;
   padding: 16px;
@@ -134,6 +134,7 @@ button {
 }
 button:hover { opacity: 0.8; }
 
+/* ===== DOTS ===== */
 .dots span {
   animation: blink 1.4s infinite both;
 }
@@ -164,6 +165,7 @@ button:hover { opacity: 0.8; }
         <input id="input" placeholder="Send a message..." />
         <button onclick="send()">➤</button>
         <button onclick="startVoice()">🎤</button>
+        <button onclick="toggleVoice()" id="voiceToggle">🔊</button>
       </div>
     </div>
   </div>
@@ -171,13 +173,16 @@ button:hover { opacity: 0.8; }
 </div>
 
 <script>
+/* ===== STATE ===== */
 let chats = JSON.parse(localStorage.getItem("chats") || "{}")
 let currentChat = localStorage.getItem("currentChat") || null
 let isGenerating = false
+let voiceEnabled = JSON.parse(localStorage.getItem("voiceEnabled") ?? "true")
 
 function save() {
   localStorage.setItem("chats", JSON.stringify(chats))
   localStorage.setItem("currentChat", currentChat)
+  localStorage.setItem("voiceEnabled", voiceEnabled)
 }
 
 /* ===== SIDEBAR ===== */
@@ -194,6 +199,7 @@ function renderSidebar() {
   })
 }
 
+/* ===== CHAT ===== */
 function renderChat() {
   const chatBox = document.getElementById("chat")
   chatBox.innerHTML = ""
@@ -226,6 +232,27 @@ function loadChat(id) {
   save(); renderSidebar(); renderChat()
 }
 
+/* ===== STREAMING WORD-BY-WORD ===== */
+function streamText(aiMsg, fullText) {
+  const words = fullText.split(/(\s+)/)
+  let i = 0
+
+  const timer = setInterval(() => {
+    aiMsg.streaming = false
+    aiMsg.text += words[i] || ""
+    renderChat()
+    save()
+    i++
+
+    if (i >= words.length) {
+      clearInterval(timer)
+      isGenerating = false
+      if (voiceEnabled) speak(fullText)
+    }
+  }, 40 + Math.random() * 30)
+}
+
+/* ===== SEND ===== */
 async function send() {
   if (isGenerating || !currentChat) return
 
@@ -254,26 +281,9 @@ async function send() {
     })
 
     const data = await res.json()
-    const full = data.reply || ""
-    let i = 0
+    streamText(aiMsg, data.reply || "")
 
-    const speed = Math.max(10, 30 - full.length / 20)
-
-    const timer = setInterval(() => {
-      aiMsg.streaming = false
-      aiMsg.text += full[i] || ""
-      renderChat()
-      i++
-
-      if (i >= full.length) {
-        clearInterval(timer)
-        isGenerating = false
-        speak(full)
-        save()
-      }
-    }, speed)
-
-  } catch (e) {
+  } catch {
     aiMsg.text = "Error"
     aiMsg.streaming = false
     isGenerating = false
@@ -281,6 +291,7 @@ async function send() {
   }
 }
 
+/* ===== VOICE INPUT ===== */
 function startVoice() {
   if (isGenerating) return
   if (!('webkitSpeechRecognition' in window)) {
@@ -289,7 +300,7 @@ function startVoice() {
   }
 
   const r = new webkitSpeechRecognition()
-  r.lang = navigator.language || "en-US"
+  r.lang = "en-US"
   r.onresult = e => {
     document.getElementById("input").value = e.results[0][0].transcript
     send()
@@ -297,32 +308,29 @@ function startVoice() {
   r.start()
 }
 
+/* ===== VOICE OUTPUT ===== */
 function isVietnamese(text) {
   return /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i.test(text)
 }
 
-function startVoice() {
-  if (isGenerating) return
-  if (!('webkitSpeechRecognition' in window)) {
-    alert('Voice input not supported')
-    return
-  }
-
-  const r = new webkitSpeechRecognition()
-
-  // cho phép cả tiếng Việt + Anh
-  r.lang = 'vi-VN'
-  r.continuous = false
-  r.interimResults = false
-
-  r.onresult = e => {
-    document.getElementById('input').value = e.results[0][0].transcript
-    send()
-  }
-
-  r.start()
+function speak(text) {
+  if (!('speechSynthesis' in window)) return
+  speechSynthesis.cancel()
+  const u = new SpeechSynthesisUtterance(text)
+  u.lang = isVietnamese(text) ? "vi-VN" : "en-US"
+  speechSynthesis.speak(u)
 }
 
+/* ===== VOICE TOGGLE ===== */
+function toggleVoice() {
+  voiceEnabled = !voiceEnabled
+  document.getElementById("voiceToggle").textContent = voiceEnabled ? "🔊" : "🔇"
+  save()
+}
+
+document.getElementById("voiceToggle").textContent = voiceEnabled ? "🔊" : "🔇"
+
+/* ===== INIT ===== */
 if (!currentChat) newChat()
 renderSidebar(); renderChat()
 </script>

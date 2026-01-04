@@ -1,52 +1,31 @@
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from pathlib import Path
 from ai import ask_openai
+import uuid
 
 app = FastAPI()
-BASE_DIR = Path(__file__).parent
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 sessions = {}
-
-SYSTEM_PROMPT = {
-    "role": "system",
-    "content": (
-        "Bạn là một trợ lý AI giống ChatGPT. "
-        "Ưu tiên trả lời bằng tiếng Việt tự nhiên, rõ ràng, dễ hiểu. "
-        "Chỉ dùng tiếng Anh khi người dùng yêu cầu."
-    )
-}
-
-@app.get("/", response_class=HTMLResponse)
-async def home():
-    return (BASE_DIR / "index.html").read_text(encoding="utf-8")
 
 class ChatRequest(BaseModel):
     session_id: str
     message: str
 
+@app.get("/", response_class=HTMLResponse)
+def home():
+    with open("templates/index.html", "r", encoding="utf-8") as f:
+        return f.read()
+
 @app.post("/chat")
 def chat(req: ChatRequest):
-    history = sessions.get(req.session_id)
-
-    if not history:
-        history = [SYSTEM_PROMPT]
-
-    history.append({
-        "role": "user",
-        "content": req.message
-    })
-
+    history = sessions.get(req.session_id, [])
     reply = ask_openai(req.message, history)
 
-    history.append({
-        "role": "assistant",
-        "content": reply
-    })
-
+    history.append({"role": "user", "content": req.message})
+    history.append({"role": "assistant", "content": reply})
     sessions[req.session_id] = history
 
-    return {
-        "reply": reply
-    }
+    return {"reply": reply}

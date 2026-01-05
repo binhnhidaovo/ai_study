@@ -3,7 +3,7 @@ from openai import OpenAI
 import os
 import re
 
-MODEL_NAME = "gpt-4o-mini"
+MODEL_NAME = "gpt-4.1-mini"
 
 client = OpenAI(
     api_key=os.getenv("OPENAI_API_KEY")
@@ -31,8 +31,28 @@ def is_vietnamese(text: str) -> bool:
         text.lower()
     ))
 
-def ask_openai(user_input, history):
-    lowered = user_input.lower()
+def ask_openai(user_input, history, image_base64=None):
+    messages = [SYSTEM_PROMPT] + history
+
+    if image_base64:
+        messages.append({
+            "role": "user",
+            "content": [
+                {"type": "input_text", "text": user_input or "Hãy phân tích hình ảnh này"},
+                {
+                    "type": "input_image",
+                    "image_base64": image_base64
+                }
+            ]
+        })
+    else:
+        messages.append({"role": "user", "content": user_input})
+
+    response = client.responses.create(
+        model="gpt-4.1-mini",
+        input=messages
+    )
+
 
     if "time" in lowered:
         _, time_str = get_current_datetime()

@@ -3,10 +3,12 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+from fastapi import UploadFile, File, Form
 from ai import ask_openai
 import json
 import time
 import uuid
+import base64
 
 app = FastAPI()
 
@@ -33,17 +35,23 @@ def home():
 
 
 @app.post("/chat")
-def chat(req: ChatRequest):
-    # Lấy lịch sử chat theo session
-    history = sessions.get(req.session_id, [])
+async def chat(
+    session_id: str = Form(...),
+    message: str = Form(""),
+    image: UploadFile | None = File(None)
+):
+    history = sessions.get(session_id, [])
 
-    # Gọi AI (truyền history để nhớ ngữ cảnh)
-    reply = ask_openai(req.message, history)
+    image_base64 = None
+    if image:
+        img_bytes = await image.read()
+        image_base64 = base64.b64encode(img_bytes).decode("utf-8")
 
-    # Lưu lại lịch sử
-    history.append({"role": "user", "content": req.message})
+    reply = ask_openai(message, history, image_base64)
+
+    history.append({"role": "user", "content": message})
     history.append({"role": "assistant", "content": reply})
-    sessions[req.session_id] = history
+    sessions[session_id] = history
 
     return {"reply": reply}
 

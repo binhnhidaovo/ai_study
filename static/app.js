@@ -73,61 +73,74 @@ function speak(text) {
 
 async function send() {
     const input = document.getElementById("input");
+    const messages = document.getElementById("messages");
+
     const text = input.value.trim();
     if (!text) return;
 
     add("user", text);
     input.value = "";
+    input.disabled = true;
 
     const aiDiv = document.createElement("div");
     aiDiv.className = "msg ai";
     aiDiv.innerText = "";
     messages.appendChild(aiDiv);
-
-    const res = await fetch("/chat_stream", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ session_id, message: text })
-    });
-
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder("utf-8");
+    messages.scrollTop = messages.scrollHeight;
 
     let fullText = "";
 
-    while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
+    try {
+        const res = await fetch("/chat_stream", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                session_id: session_id,
+                message: text
+            })
+        });
 
-        const chunk = decoder.decode(value);
-        const lines = chunk.split("\n");
+        if (!res.ok || !res.body) {
+            aiDiv.innerText = "❌ Lỗi kết nối server";
+            input.disabled = false;
+            return;
+        }
 
-        for (let line of lines) {
-            if (line.startsWith("data: ")) {
-                const data = line.replace("data: ", "");
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder("utf-8");
+
+        while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value, { stream: true });
+            const lines = chunk.split("\n");
+
+            for (let line of lines) {
+                if (!line.startsWith("data: ")) continue;
+
+                const data = line.slice(6);
+
                 if (data === "[DONE]") {
-                    speak(fullText); // đọc sau khi xong
+                    speak(fullText); // đọc sau khi stream xong
+                    input.disabled = false;
                     return;
                 }
+
                 fullText += data;
                 aiDiv.innerText = fullText;
                 messages.scrollTop = messages.scrollHeight;
             }
         }
+    } catch (err) {
+        aiDiv.innerText = "❌ Có lỗi xảy ra";
+        console.error(err);
+        input.disabled = false;
     }
 }
 
-const inputBox = document.getElementById("input");
-
-inputBox.addEventListener("keydown", function (e) {
-    if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault(); // không xuống dòng
-        send();
-    }
-});
 
 
-// ===== VOICE INPUT =====
 function startVoice() {
     if (!("webkitSpeechRecognition" in window)) {
         alert("Browser không hỗ trợ voice");

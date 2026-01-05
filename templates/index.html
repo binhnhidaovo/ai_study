@@ -19,8 +19,10 @@
     <div class="input-box">
         <button class="icon-btn" onclick="startVoice()">🎤</button>
         <input id="input" placeholder="Nhập tin nhắn..." />
+        <input type="file" id="imageInput" accept="image/*" hidden />
         <button class="icon-btn send" onclick="send()">➤</button>
         <button class="icon-btn" onclick="toggleSpeak()">🔊</button>
+        <button class="icon-btn" onclick="document.getElementById('imageInput').click()">🖼️</button>
     </div>
 </main>
 

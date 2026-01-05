@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>AI Study Chat</title>
-<link rel="stylesheet" href="/static/style.css">
+    <meta charset="UTF-8">
+    <title>AI Study Chat</title>
+    <link rel="stylesheet" href="/static/style.css">
 </head>
-<body>
 
+<body>
 <div class="app">
     <aside class="sidebar">
         <h2>AI Study</h2>
-        <button onclick="newChat()">+ New chat</button>
+        <button onclick="newChat()">➕ New chat</button>
     </aside>
 
     <main class="chat">
@@ -26,24 +26,5 @@
 </div>
 
 <script src="/static/app.js"></script>
-
-<body>
-<div class="container">
-    <div class="sidebar">
-        <button onclick="newChat()">➕ New Chat</button>
-        <div id="chat-list"></div>
-    </div>
-
-    <div class="chat">
-        <div id="messages"></div>
-
-        <div class="input-box">
-            <button onclick="startVoice()">🎤</button>
-            <input id="input" placeholder="Send a message..." />
-            <button onclick="send()">➤</button>
-            <button onclick="toggleSpeak()">🔊</button>
-        </div>
-    </div>
-</div>
-
+</body>
 </html>

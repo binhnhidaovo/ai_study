@@ -2,10 +2,10 @@ body {
     margin: 0;
     font-family: system-ui;
     background: #343541;
-    color: #fff;
+    color: #ececf1;
 }
 
-.app {
+.container {
     display: flex;
     height: 100vh;
 }
@@ -13,7 +13,25 @@ body {
 .sidebar {
     width: 260px;
     background: #202123;
-    padding: 15px;
+    padding: 10px;
+    overflow-y: auto;
+}
+
+.sidebar button {
+    width: 100%;
+    padding: 10px;
+    background: #444;
+    border: none;
+    color: white;
+    cursor: pointer;
+    margin-bottom: 10px;
+}
+
+.chat-item {
+    padding: 8px;
+    background: #2f2f35;
+    margin-bottom: 5px;
+    cursor: pointer;
 }
 
 .chat {
@@ -24,32 +42,20 @@ body {
 
 #messages {
     flex: 1;
-    padding: 20px;
+    padding: 15px;
     overflow-y: auto;
 }
 
-.msg.user {
-    text-align: right;
-    margin: 10px;
-}
-
-.msg.ai {
-    text-align: left;
-    margin: 10px;
-}
+.msg.user { text-align: right; }
+.msg.ai { text-align: left; }
 
 .input-box {
     display: flex;
-    padding: 15px;
-    background: #40414f;
+    padding: 10px;
+    gap: 5px;
 }
 
 input {
     flex: 1;
-    padding: 12px;
-    border-radius: 6px;
-    border: none;
-}
-button {
-    margin-left: 10px;
+    padding: 10px;
 }

@@ -1,13 +1,23 @@
+// ===== SESSION & SIDEBAR =====
 let session_id = localStorage.getItem("session_id") || crypto.randomUUID();
+let sessions = JSON.parse(localStorage.getItem("sessions") || "[]");
+
+if (!sessions.includes(session_id)) {
+    sessions.push(session_id);
+    localStorage.setItem("sessions", JSON.stringify(sessions));
+}
+
 localStorage.setItem("session_id", session_id);
 
 let autoSpeak = true;
 
+// ===== VOICE ON / OFF =====
 function toggleSpeak() {
     autoSpeak = !autoSpeak;
     alert(autoSpeak ? "Voice ON" : "Voice OFF");
 }
 
+// ===== ADD MESSAGE =====
 function add(role, text) {
     const div = document.createElement("div");
     div.className = "msg " + role;
@@ -16,11 +26,14 @@ function add(role, text) {
     messages.scrollTop = messages.scrollHeight;
 }
 
+// ===== DETECT LANGUAGE =====
 function detectLang(text) {
-    const vietnamese = /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i;
+    const vietnamese =
+        /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i;
     return vietnamese.test(text) ? "vi-VN" : "en-US";
 }
 
+// ===== TEXT TO SPEECH =====
 function speak(text) {
     if (!autoSpeak) return;
 
@@ -31,6 +44,7 @@ function speak(text) {
     speechSynthesis.speak(utter);
 }
 
+// ===== SEND MESSAGE =====
 async function send() {
     const input = document.getElementById("input");
     const text = input.value.trim();
@@ -41,7 +55,7 @@ async function send() {
 
     const res = await fetch("/chat", {
         method: "POST",
-        headers: {"Content-Type": "application/json"},
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ session_id, message: text })
     });
 
@@ -50,14 +64,15 @@ async function send() {
     speak(data.reply);
 }
 
+// ===== VOICE INPUT =====
 function startVoice() {
-    if (!('webkitSpeechRecognition' in window)) {
+    if (!("webkitSpeechRecognition" in window)) {
         alert("Browser không hỗ trợ voice");
         return;
     }
 
     const recognition = new webkitSpeechRecognition();
-    recognition.lang = "vi-VN"; // nói Việt hoặc Anh đều OK
+    recognition.lang = "vi-VN"; // nói Anh vẫn nhận
     recognition.continuous = false;
 
     recognition.onresult = (e) => {
@@ -68,3 +83,43 @@ function startVoice() {
 
     recognition.start();
 }
+
+// ===== SIDEBAR FUNCTIONS =====
+function renderChatList() {
+    const list = document.getElementById("chat-list");
+    if (!list) return;
+
+    list.innerHTML = "";
+    sessions.forEach(id => {
+        const div = document.createElement("div");
+        div.className = "chat-item";
+        div.innerText = "Chat " + id.slice(0, 6);
+        div.onclick = () => loadChat(id);
+        list.appendChild(div);
+    });
+}
+
+async function loadChat(id) {
+    session_id = id;
+    localStorage.setItem("session_id", id);
+    messages.innerHTML = "";
+
+    const res = await fetch("/history/" + id);
+    const history = await res.json();
+
+    history.forEach(m => {
+        add(m.role === "user" ? "user" : "ai", m.content);
+    });
+}
+
+function newChat() {
+    session_id = crypto.randomUUID();
+    sessions.push(session_id);
+    localStorage.setItem("sessions", JSON.stringify(sessions));
+    localStorage.setItem("session_id", session_id);
+    messages.innerHTML = "";
+    renderChatList();
+}
+
+// ===== INIT =====
+renderChatList();

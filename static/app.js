@@ -2,6 +2,9 @@
 let session_id = localStorage.getItem("session_id") || crypto.randomUUID();
 let sessions = JSON.parse(localStorage.getItem("sessions") || "[]");
 
+speechSynthesis.onvoiceschanged = () => {};
+
+
 if (!sessions.includes(session_id)) {
     sessions.push(session_id);
     localStorage.setItem("sessions", JSON.stringify(sessions));
@@ -33,14 +36,37 @@ function detectLang(text) {
     return vietnamese.test(text) ? "vi-VN" : "en-US";
 }
 
-// ===== TEXT TO SPEECH =====
+
 function speak(text) {
-    if (!autoSpeak) return;
+    if (!autoSpeak || !text.trim()) return;
 
     const utter = new SpeechSynthesisUtterance(text);
-    utter.lang = detectLang(text);
-    utter.rate = 1;
+    utter.rate = 0.95;   // chậm hơn cho tự nhiên
     utter.pitch = 1;
+
+    const voices = speechSynthesis.getVoices();
+    const lang = detectLang(text);
+
+    let selectedVoice = null;
+
+    if (lang === "vi-VN") {
+        selectedVoice = voices.find(v =>
+            v.lang.startsWith("vi") &&
+            (v.name.includes("Microsoft") || v.name.includes("Google"))
+        );
+        utter.lang = "vi-VN";
+    } else {
+        selectedVoice = voices.find(v =>
+            v.lang.startsWith("en") &&
+            (v.name.includes("Google") || v.name.includes("Microsoft"))
+        );
+        utter.lang = "en-US";
+    }
+
+    if (selectedVoice) {
+        utter.voice = selectedVoice;
+    }
+
     speechSynthesis.speak(utter);
 }
 

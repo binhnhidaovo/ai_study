@@ -44,7 +44,6 @@ function speak(text) {
     speechSynthesis.speak(utter);
 }
 
-// ===== SEND MESSAGE =====
 async function send() {
     const input = document.getElementById("input");
     const text = input.value.trim();
@@ -53,16 +52,44 @@ async function send() {
     add("user", text);
     input.value = "";
 
-    const res = await fetch("/chat", {
+    const aiDiv = document.createElement("div");
+    aiDiv.className = "msg ai";
+    aiDiv.innerText = "";
+    messages.appendChild(aiDiv);
+
+    const res = await fetch("/chat_stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ session_id, message: text })
     });
 
-    const data = await res.json();
-    add("ai", data.reply);
-    speak(data.reply);
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+
+    let fullText = "";
+
+    while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value);
+        const lines = chunk.split("\n");
+
+        for (let line of lines) {
+            if (line.startsWith("data: ")) {
+                const data = line.replace("data: ", "");
+                if (data === "[DONE]") {
+                    speak(fullText); // đọc sau khi xong
+                    return;
+                }
+                fullText += data;
+                aiDiv.innerText = fullText;
+                messages.scrollTop = messages.scrollHeight;
+            }
+        }
+    }
 }
+
 
 // ===== VOICE INPUT =====
 function startVoice() {

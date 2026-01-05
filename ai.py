@@ -1,6 +1,7 @@
 from datetime import datetime
 from openai import OpenAI
 import os
+import re
 
 MODEL_NAME = "gpt-4o-mini"
 
@@ -11,10 +12,11 @@ client = OpenAI(
 SYSTEM_PROMPT = {
     "role": "system",
     "content": (
-        "You are a helpful study assistant AI. "
-        "You explain concepts clearly and naturally in English. "
-        "You help students with Math, Physics, Chemistry, Biology, History, and more. "
-        "Give step-by-step explanations and simple examples."
+        "You are a helpful study assistant AI.\n"
+        "If the user speaks Vietnamese, reply in Vietnamese.\n"
+        "If the user speaks English, reply in English.\n"
+        "Explain clearly, step by step, with simple examples.\n"
+        "Help with Math, Physics, Chemistry, Biology, History, and studying."
     )
 }
 
@@ -22,6 +24,12 @@ def get_current_datetime():
     now = datetime.now()
     return now.strftime("%A, %B %d, %Y"), now.strftime("%H:%M:%S")
 
+def is_vietnamese(text: str) -> bool:
+    return bool(re.search(
+        r"[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩ"
+        r"òóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]",
+        text.lower()
+    ))
 
 def ask_openai(user_input, history):
     lowered = user_input.lower()
@@ -35,7 +43,17 @@ def ask_openai(user_input, history):
         return "Today is " + date_str + "."
 
     messages = [SYSTEM_PROMPT] + history
-    messages.append({"role": "user", "content": user_input})
+
+    if is_vietnamese(user_input):
+        messages.append({
+            "role": "user",
+            "content": "Trả lời bằng tiếng Việt: " + user_input
+        })
+    else:
+        messages.append({
+            "role": "user",
+            "content": user_input
+        })
 
     response = client.responses.create(
         model=MODEL_NAME,

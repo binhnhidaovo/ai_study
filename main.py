@@ -1,8 +1,11 @@
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from ai import ask_openai
+import json
+import time
 import uuid
 
 app = FastAPI()
@@ -51,3 +54,24 @@ def new_chat():
     session_id = str(uuid.uuid4())
     sessions[session_id] = []
     return {"session_id": session_id}
+
+
+@app.post("/chat_stream")
+def chat_stream(req: ChatRequest):
+    history = sessions.get(req.session_id, [])
+
+    def event_generator():
+        reply = ""
+
+        # ask_openai_stream là hàm streaming (bên dưới)
+        for chunk in ask_openai_stream(req.message, history):
+            reply += chunk
+            yield f"data: {chunk}\n\n"
+
+        history.append({"role": "user", "content": req.message})
+        history.append({"role": "assistant", "content": reply})
+        sessions[req.session_id] = history
+
+        yield "data: [DONE]\n\n"
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")

@@ -106,10 +106,8 @@ function speak(text) {
     speechSynthesis.speak(utter);
 }
 
-// ===== SEND (STREAMING) =====
 async function send() {
     const text = textarea.value.trim();
-    if (!text && imageInput.files.length === 0) return;
     if (!text) return;
 
     add("user", text);
@@ -118,7 +116,6 @@ async function send() {
     textarea.disabled = true;
 
     const typingDiv = createTypingIndicator();
-
     let fullText = "";
 
     try {
@@ -137,8 +134,6 @@ async function send() {
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
 
-        typingDiv.innerText = "";
-
         while (true) {
             const { value, done } = await reader.read();
             if (done) break;
@@ -147,17 +142,31 @@ async function send() {
             const lines = chunk.split("\n");
 
             for (let line of lines) {
-                if (!line.startsWith("data: ")) continue;
+                if (!line.trim()) continue;
 
-                const data = line.slice(6);
+                if (line.startsWith("data: ")) {
+                    line = line.slice(6);
+                }
 
-                if (data === "[DONE]") {
+                if (line === "[DONE]") {
                     speak(fullText);
                     textarea.disabled = false;
                     return;
                 }
 
-                fullText += data;
+                let parsed;
+                try {
+                    parsed = JSON.parse(line);
+                } catch {
+                    parsed = { content: line };
+                }
+
+                const token =
+                    parsed.content ||
+                    parsed.delta?.content ||
+                    "";
+
+                fullText += token;
                 typingDiv.innerText = fullText;
                 messages.scrollTop = messages.scrollHeight;
             }
@@ -168,6 +177,7 @@ async function send() {
         textarea.disabled = false;
     }
 }
+
 
 // ===== VOICE INPUT =====
 function startVoice() {

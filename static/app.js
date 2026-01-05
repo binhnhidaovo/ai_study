@@ -67,8 +67,8 @@ function speak(text) {
     utter.lang = lang;
 
     const voice = voices.find(v =>
-        v.lang.startsWith(lang.split("-")[0]) &&
-        (v.name.includes("Google") || v.name.includes("Microsoft"))
+    v.lang === "vi-VN" &&
+    v.name.toLowerCase().includes("google")
     );
 
     if (voice) utter.voice = voice;
@@ -78,6 +78,7 @@ function speak(text) {
 // ===== SEND (STREAMING) =====
 async function send() {
     const text = textarea.value.trim();
+    if (/```|function|const|let|=>/.test(text)) return;
     if (!text) return;
 
     add("user", text);

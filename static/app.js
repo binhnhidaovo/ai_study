@@ -1,6 +1,7 @@
 // ===== SESSION & SIDEBAR =====
 let session_id = localStorage.getItem("session_id") || crypto.randomUUID();
 let sessions = JSON.parse(localStorage.getItem("sessions") || "[]");
+let chatTitles = JSON.parse(localStorage.getItem("chat_titles") || "{}");
 
 if (!sessions.includes(session_id)) {
     sessions.push(session_id);
@@ -9,6 +10,7 @@ if (!sessions.includes(session_id)) {
 localStorage.setItem("session_id", session_id);
 
 let autoSpeak = true;
+let selectedImage = null;
 
 // ===== DOM =====
 const messages = document.getElementById("messages");
@@ -33,11 +35,8 @@ textarea.addEventListener("keydown", (e) => {
 imageInput.addEventListener("change", () => {
     const file = imageInput.files[0];
     if (!file) return;
-
+    selectedImage = file;
     previewImage(file);
-
-    // reset để chọn lại cùng file vẫn trigger
-    imageInput.value = "";
 });
 
 // ===== ADD MESSAGE =====
@@ -51,7 +50,6 @@ function add(role, text) {
 
 function previewImage(file) {
     const reader = new FileReader();
-
     reader.onload = () => {
         const wrapper = document.createElement("div");
         wrapper.className = "msg user";
@@ -64,15 +62,14 @@ function previewImage(file) {
         messages.appendChild(wrapper);
         messages.scrollTop = messages.scrollHeight;
     };
-
     reader.readAsDataURL(file);
 }
 
-// ===== TYPING INDICATOR =====
+// ===== TYPING INDICATOR (FIX) =====
 function createTypingIndicator() {
     const div = document.createElement("div");
-    div.className = "msg ai typing";
-    div.innerHTML = "AI đang gõ<span class='dot'>.</span><span class='dot'>.</span><span class='dot'>.</span>";
+    div.className = "msg ai";
+    div.innerText = "AI đang gõ...";
     messages.appendChild(div);
     messages.scrollTop = messages.scrollHeight;
     return div;
@@ -92,37 +89,52 @@ function speak(text) {
     const utter = new SpeechSynthesisUtterance(text);
     utter.rate = 0.95;
     utter.pitch = 1;
+    utter.lang = detectLang(text);
 
     const voices = speechSynthesis.getVoices();
-    const lang = detectLang(text);
-    utter.lang = lang;
-
     const voice = voices.find(v =>
-    v.lang === "vi-VN" &&
-    v.name.toLowerCase().includes("google")
+        v.lang === "vi-VN" && v.name.toLowerCase().includes("google")
     );
-
     if (voice) utter.voice = voice;
+
     speechSynthesis.speak(utter);
 }
 
+// ===== SEND =====
 async function send() {
     const text = textarea.value.trim();
-    if (!text) return;
+    if (!text && !selectedImage) return;
 
-    add("user", text);
+    if (text) add("user", text);
+
     textarea.value = "";
     textarea.style.height = "auto";
     textarea.readOnly = true;
 
+    // set title lần đầu
+    if (!chatTitles[session_id] && text) {
+        chatTitles[session_id] = text.slice(0, 30);
+        localStorage.setItem("chat_titles", JSON.stringify(chatTitles));
+        renderChatList();
+    }
+
     const typingDiv = createTypingIndicator();
     let fullText = "";
+    let isFirstToken = true;
 
     try {
+        const fd = new FormData();
+        fd.append("session_id", session_id);
+        fd.append("message", text || "");
+
+        if (selectedImage) {
+            fd.append("image", selectedImage);
+            selectedImage = null;
+        }
+
         const res = await fetch("/chat_stream", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ session_id, message: text })
+            body: fd
         });
 
         if (!res.ok || !res.body) {
@@ -143,11 +155,7 @@ async function send() {
 
             for (let line of lines) {
                 if (!line.trim()) continue;
-
-                if (line.startsWith("data: ")) {
-                    line = line.slice(6);
-                }
-
+                if (line.startsWith("data: ")) line = line.slice(6);
                 if (line === "[DONE]") {
                     speak(fullText);
                     textarea.readOnly = false;
@@ -161,10 +169,13 @@ async function send() {
                     parsed = { content: line };
                 }
 
-                const token =
-                    parsed.content ||
-                    parsed.delta?.content ||
-                    "";
+                const token = parsed.content || parsed.delta?.content || "";
+                if (!token) continue;
+
+                if (isFirstToken) {
+                    typingDiv.innerText = "";
+                    isFirstToken = false;
+                }
 
                 fullText += token;
                 typingDiv.innerText = fullText;
@@ -173,11 +184,10 @@ async function send() {
         }
     } catch (e) {
         typingDiv.innerText = "❌ Lỗi kết nối";
-        console.error(e);
         textarea.readOnly = false;
+        console.error(e);
     }
 }
-
 
 // ===== VOICE INPUT =====
 function startVoice() {
@@ -207,7 +217,7 @@ function renderChatList() {
     sessions.forEach(id => {
         const div = document.createElement("div");
         div.className = "chat-item";
-        div.innerText = "Chat " + id.slice(0, 6);
+        div.innerText = chatTitles[id] || "New chat";
         div.onclick = () => loadChat(id);
         list.appendChild(div);
     });
@@ -220,7 +230,6 @@ async function loadChat(id) {
 
     const res = await fetch("/history/" + id);
     const history = await res.json();
-
     history.forEach(m => add(m.role, m.content));
 }
 

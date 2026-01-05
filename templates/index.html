@@ -19,41 +19,28 @@
     <!-- CHAT AREA -->
     <main class="chat-area">
 
-        <!-- MESSAGES -->
         <div id="messages" class="messages"></div>
 
-    <div class="input-wrapper">
-  <div class="input-bar">
+        <div class="input-wrapper">
+            <div class="input-bar">
 
-    <!-- Upload image -->
-    <button class="icon-btn" onclick="document.getElementById('imageInput').click()" title="Upload image">
-      🖼️
-    </button>
-    <input type="file" id="imageInput" accept="image/*" hidden />
+                <button class="icon-btn" onclick="document.getElementById('imageInput').click()" title="Upload image">
+                    🖼️
+                </button>
+                <input type="file" id="imageInput" accept="image/*" hidden>
 
-    <!-- Textarea -->
-    <textarea
-      id="input"
-      placeholder="Send a message..."
-      rows="1"
-    ></textarea>
+                <textarea id="input" placeholder="Send a message..." rows="1"></textarea>
 
-    <!-- Mute / unmute -->
-    <form>
-        <button class="icon-btn" onclick="toggleSpeak()" title="Mute / Unmute">
-        🔊
-        </button>
-    <form>
-    <!-- Send -->
-    <form>
-        <button class="send-btn" onclick="send()" title="Send">
-        ➤
-        </button>
-    <form>
-  </div>
+                <button class="icon-btn" onclick="startVoice()" title="Voice input">🎤</button>
+                <button class="icon-btn" onclick="autoSpeak = !autoSpeak" title="Mute / Unmute">🔊</button>
+                <button class="send-btn" onclick="send()" title="Send">➤</button>
+
+            </div>
+        </div>
+
+    </main>
 </div>
 
 <script src="/static/app.js"></script>
 </body>
-
 </html>

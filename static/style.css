@@ -1,61 +1,135 @@
-body {
-    margin: 0;
-    font-family: system-ui;
-    background: #343541;
-    color: #ececf1;
+* {
+    box-sizing: border-box;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont;
 }
 
-.container {
+body {
+    margin: 0;
+    background: #0f172a;
+    color: #e5e7eb;
+}
+
+.app {
     display: flex;
     height: 100vh;
 }
 
+/* Sidebar */
 .sidebar {
-    width: 260px;
-    background: #202123;
-    padding: 10px;
-    overflow-y: auto;
+    width: 240px;
+    background: #020617;
+    padding: 16px;
+    border-right: 1px solid #1e293b;
+}
+
+.sidebar h2 {
+    margin: 0 0 16px;
+    font-size: 20px;
 }
 
 .sidebar button {
     width: 100%;
     padding: 10px;
-    background: #444;
+    background: #2563eb;
     border: none;
+    border-radius: 8px;
     color: white;
     cursor: pointer;
-    margin-bottom: 10px;
 }
 
-.chat-item {
-    padding: 8px;
-    background: #2f2f35;
-    margin-bottom: 5px;
-    cursor: pointer;
+.sidebar button:hover {
+    background: #1d4ed8;
 }
 
+/* Chat */
 .chat {
     flex: 1;
     display: flex;
     flex-direction: column;
+    background: #020617;
 }
 
-#messages {
+.messages {
     flex: 1;
-    padding: 15px;
+    padding: 24px;
     overflow-y: auto;
 }
 
-.msg.user { text-align: right; }
-.msg.ai { text-align: left; }
-
-.input-box {
-    display: flex;
-    padding: 10px;
-    gap: 5px;
+/* Message bubble */
+.msg {
+    max-width: 70%;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    border-radius: 14px;
+    line-height: 1.4;
+    animation: fadeIn 0.2s ease-in;
 }
 
-input {
+.msg.user {
+    background: #2563eb;
+    margin-left: auto;
+    border-bottom-right-radius: 4px;
+}
+
+.msg.ai {
+    background: transparent;
+    padding: 4px 0;
+    margin-right: auto;
+    max-width: 100%;
+    color: #e5e7eb;
+    line-height: 1.6;
+}
+
+/* Input box */
+.input-box {
+    display: flex;
+    gap: 8px;
+    padding: 16px;
+    border-top: 1px solid #1e293b;
+}
+
+.input-box input {
     flex: 1;
-    padding: 10px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: none;
+    outline: none;
+    background: #020617;
+    color: #e5e7eb;
+    font-size: 15px;
+}
+
+.icon-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    background: #1e293b;
+    color: white;
+    font-size: 18px;
+}
+
+.icon-btn:hover {
+    background: #334155;
+}
+
+.icon-btn.send {
+    background: #2563eb;
+}
+
+.icon-btn.send:hover {
+    background: #1d4ed8;
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }

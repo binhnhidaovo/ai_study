@@ -13,17 +13,16 @@
         <button onclick="newChat()">➕ New chat</button>
     </aside>
 
-    <main class="chat">
-        <div id="messages"></div>
+<main class="chat">
+    <div id="messages" class="messages"></div>
 
-        <div class="input-box">
-            <button onclick="startVoice()">🎤</button>
-            <input id="input" placeholder="Send a message..." />
-            <button onclick="send()">➤</button>
-            <button onclick="toggleSpeak()">🔊</button>
-        </div>
-    </main>
-</div>
+    <div class="input-box">
+        <button class="icon-btn" onclick="startVoice()">🎤</button>
+        <input id="input" placeholder="Nhập tin nhắn..." />
+        <button class="icon-btn send" onclick="send()">➤</button>
+        <button class="icon-btn" onclick="toggleSpeak()">🔊</button>
+    </div>
+</main>
 
 <script src="/static/app.js"></script>
 </body>

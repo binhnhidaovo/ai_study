@@ -5,9 +5,10 @@
 
 body {
     margin: 0;
-    background: #0f172a;
-    color: #e5e7eb;
+    background: #0b1220;
+    color: #e6e8ee;
 }
+
 
 .app {
     display: flex;
@@ -17,10 +18,11 @@ body {
 /* Sidebar */
 .sidebar {
     width: 240px;
-    background: #020617;
-    padding: 16px;
-    border-right: 1px solid #1e293b;
+    background: #050914;
+    padding: 18px;
+    border-right: 1px solid #1f2937;
 }
+
 
 .sidebar h2 {
     margin: 0 0 16px;
@@ -41,13 +43,13 @@ body {
     background: #1d4ed8;
 }
 
-/* Chat */
 .chat {
     flex: 1;
     display: flex;
     flex-direction: column;
-    background: #020617;
+    background: #0b1220;
 }
+
 
 .messages {
     flex: 1;
@@ -66,53 +68,52 @@ body {
 }
 
 .msg.user {
-    background: #2563eb;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
     margin-left: auto;
-    border-bottom-right-radius: 4px;
+    color: white;
+    font-weight: 500;
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
 }
 
 .msg.ai {
     background: transparent;
-    padding: 4px 0;
-    margin-right: auto;
+    margin: 16px 0;
     max-width: 100%;
-    color: #e5e7eb;
-    line-height: 1.6;
+    color: #e6e8ee;
+    font-size: 15.5px;
+    line-height: 1.75;
+    letter-spacing: 0.2px;
 }
 
-/* Input box */
 .input-box {
     display: flex;
-    gap: 8px;
-    padding: 16px;
-    border-top: 1px solid #1e293b;
+    gap: 10px;
+    padding: 18px;
+    border-top: 1px solid #1f2937;
+    background: #050914;
 }
+
 
 .input-box input {
     flex: 1;
-    padding: 12px 14px;
-    border-radius: 10px;
+    padding: 14px 16px;
+    border-radius: 12px;
     border: none;
     outline: none;
-    background: #020617;
-    color: #e5e7eb;
+    background: #0b1220;
+    color: #e6e8ee;
     font-size: 15px;
 }
 
 .icon-btn {
-    width: 44px;
-    height: 44px;
-    border-radius: 10px;
-    border: none;
-    cursor: pointer;
-    background: #1e293b;
-    color: white;
-    font-size: 18px;
+    background: #0b1220;
+    border: 1px solid #1f2937;
 }
 
 .icon-btn:hover {
-    background: #334155;
+    background: #111827;
 }
+
 
 .icon-btn.send {
     background: #2563eb;

@@ -1,21 +1,47 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
-<meta charset="UTF-8" />
-<title>AI Study</title>
-<link rel="stylesheet" href="/static/style.css" />
+    <meta charset="UTF-8">
+    <title>AI Study Chat</title>
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 
 <body>
-<div class="chat">
-    <div id="messages"></div>
+<div class="layout">
 
-    <div class="input-bar">
-        <textarea id="input" placeholder="Nhập câu hỏi..."></textarea>
-        <button onclick="send()">➤</button>
-    </div>
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-header">AI Study</div>
+        <button class="new-chat" onclick="newChat()">＋ New chat</button>
+        <div id="chat-list" class="chat-list"></div>
+    </aside>
+
+    <!-- CHAT AREA -->
+    <main class="chat-area">
+        <div id="messages" class="messages"></div>
+
+        <!-- INPUT BAR -->
+        <div class="input-wrapper">
+            <div class="input-bar">
+                <button class="icon-btn" onclick="startVoice()">🎤</button>
+
+                <textarea
+                    id="input"
+                    rows="1"
+                    placeholder="Send a message..."
+                ></textarea>
+
+                <input type="file" id="imageInput" accept="image/*" hidden>
+                <button class="icon-btn" onclick="imageInput.click()">🖼️</button>
+
+                <button class="send-btn" onclick="send()">➤</button>
+            </div>
+        </div>
+    </main>
+
 </div>
 
 <script src="/static/app.js"></script>
 </body>
+
 </html>

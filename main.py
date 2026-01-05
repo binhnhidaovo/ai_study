@@ -76,7 +76,7 @@ async def chat(
         })
 
     response = client.responses.create(
-        model="gpt-4.1-mini",
+        model="gpt-4o-mini",
         input=[{"role": "user", "content": content}]
     )
 
@@ -118,7 +118,7 @@ async def chat_stream(
                 })
 
             stream = client.responses.stream(
-                model="gpt-4.1-mini",
+                model="gpt-4o-mini",
                 input=[{"role": "user", "content": content}]
             )
 
@@ -137,7 +137,7 @@ async def chat_stream(
             yield f"data: {json.dumps({'error': str(e)})}\n\n"
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
-
+    
 
 # ===== NEW CHAT =====
 @app.post("/new_chat")

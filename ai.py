@@ -3,7 +3,7 @@ from openai import OpenAI
 import os
 import re
 
-MODEL_NAME = "gpt-4.1-mini"
+MODEL_NAME = "gpt-4o-mini"
 
 client = OpenAI(
     api_key=os.getenv("OPENAI_API_KEY")
@@ -49,7 +49,7 @@ def ask_openai(user_input, history, image_base64=None):
         messages.append({"role": "user", "content": user_input})
 
     response = client.responses.create(
-        model="gpt-4.1-mini",
+        model="gpt-4o-mini",
         input=messages
     )
 

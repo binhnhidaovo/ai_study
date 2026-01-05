@@ -1,83 +1,21 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8" />
-    <title>AI Study Chat</title>
-
-    <!-- PRELOAD FONT (PHẢI ĐẶT TRƯỚC CSS) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-
-    <!-- CSS -->
-    <link rel="stylesheet" href="/static/style.css" />
-
-    <!-- MathJax config -->
-    <script>
-      window.MathJax = {
-        tex: {
-          inlineMath: [['$', '$'], ['\\(', '\\)']],
-          displayMath: [['$$', '$$']]
-        },
-        svg: { fontCache: 'global' }
-      };
-    </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+<meta charset="UTF-8" />
+<title>AI Study</title>
+<link rel="stylesheet" href="/static/style.css" />
 </head>
 
 <body>
-<div class="layout">
+<div class="chat">
+    <div id="messages"></div>
 
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
-        <div class="sidebar-header">AI Study</div>
-        <button class="new-chat" onclick="newChat()">＋ New chat</button>
-        <div id="chat-list" class="chat-list"></div>
-    </aside>
-
-    <!-- CHAT AREA -->
-    <main class="chat-area">
-
-        <!-- MESSAGES -->
-        <div id="messages" class="messages"></div>
-
-        <!-- INPUT -->
-        <div class="input-wrapper">
-            <div class="input-bar">
-
-                <!-- Upload image -->
-                <button class="icon-btn"
-                        onclick="document.getElementById('imageInput').click()"
-                        title="Upload image">
-                    🖼️
-                </button>
-                <input type="file" id="imageInput" accept="image/*" hidden />
-
-                <!-- Text input -->
-                <textarea
-                    id="input"
-                    placeholder="Send a message..."
-                    rows="1"></textarea>
-
-                <!-- Send -->
-                <button class="send-btn" onclick="send()" title="Send">
-                    ➤
-                </button>
-
-                <!-- Voice -->
-                <button class="icon-btn" onclick="startVoice()" title="Voice input">
-                    🎤
-                </button>
-
-            </div>
-        </div>
-
-    </main>
+    <div class="input-bar">
+        <textarea id="input" placeholder="Nhập câu hỏi..."></textarea>
+        <button onclick="send()">➤</button>
+    </div>
 </div>
 
-<!-- APP JS (ĐẶT CUỐI BODY) -->
 <script src="/static/app.js"></script>
 </body>
 </html>
-              

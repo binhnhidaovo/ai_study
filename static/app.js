@@ -44,6 +44,7 @@ function speak(text) {
     speechSynthesis.speak(utter);
 }
 
+
 async function send() {
     const input = document.getElementById("input");
     const text = input.value.trim();
@@ -89,6 +90,15 @@ async function send() {
         }
     }
 }
+
+const inputBox = document.getElementById("input");
+
+inputBox.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault(); // không xuống dòng
+        send();
+    }
+});
 
 
 // ===== VOICE INPUT =====

@@ -4,8 +4,26 @@
     <meta charset="UTF-8" />
     <title>AI Study Chat</title>
 
-    <!-- LINK CSS -->
+    <!-- PRELOAD FONT (PHẢI ĐẶT TRƯỚC CSS) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- CSS -->
     <link rel="stylesheet" href="/static/style.css" />
+
+    <!-- MathJax config -->
+    <script>
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          displayMath: [['$$', '$$']]
+        },
+        svg: { fontCache: 'global' }
+      };
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 </head>
 
 <body>
@@ -40,12 +58,16 @@
                 <textarea
                     id="input"
                     placeholder="Send a message..."
-                    rows="1">
-                </textarea>
+                    rows="1"></textarea>
 
                 <!-- Send -->
                 <button class="send-btn" onclick="send()" title="Send">
                     ➤
+                </button>
+
+                <!-- Voice -->
+                <button class="icon-btn" onclick="startVoice()" title="Voice input">
+                    🎤
                 </button>
 
             </div>
@@ -54,7 +76,8 @@
     </main>
 </div>
 
-<!-- JS -->
+<!-- APP JS (ĐẶT CUỐI BODY) -->
 <script src="/static/app.js"></script>
 </body>
 </html>
+              

@@ -82,23 +82,40 @@ function detectLang(text) {
     return vi.test(text) ? "vi-VN" : "en-US";
 }
 
-// ===== SPEAK =====
-function speak(text) {
-    if (!autoSpeak || !text.trim()) return;
+function cleanTextForSpeech(text) {
+    return text
+        .replace(/\$\$[\s\S]*?\$\$/g, '')   // remove block LaTeX
+        .replace(/\$.*?\$/g, '')             // remove inline LaTeX
+        .replace(/\\/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
 
-    const utter = new SpeechSynthesisUtterance(text);
-    utter.rate = 0.95;
-    utter.pitch = 1;
-    utter.lang = detectLang(text);
+function speak(text) {
+    if (!autoSpeak) return;
+
+    const cleanText = cleanTextForSpeech(text);
+    if (!cleanText) return;
+
+    const utter = new SpeechSynthesisUtterance(cleanText);
+    utter.lang = "vi-VN";
+    utter.rate = 0.85;   // chậm hơn → giống giáo viên
+    utter.pitch = 1.0;
 
     const voices = speechSynthesis.getVoices();
-    const voice = voices.find(v =>
-        v.lang === "vi-VN" && v.name.toLowerCase().includes("google")
-    );
+
+    // Ưu tiên voice Việt xịn
+    const voice =
+        voices.find(v => v.lang === "vi-VN" && v.name.includes("Google")) ||
+        voices.find(v => v.lang === "vi-VN" && v.name.includes("Microsoft")) ||
+        voices.find(v => v.lang === "vi-VN");
+
     if (voice) utter.voice = voice;
 
+    speechSynthesis.cancel(); // tránh chồng tiếng
     speechSynthesis.speak(utter);
 }
+
 
 // ===== SEND =====
 async function send() {

@@ -73,33 +73,36 @@ html, body {
     padding: 24px 0;
 }
 
-/* CENTER CONTENT LIKE CHATGPT */
-.messages > .msg {
+.msg {
     max-width: 720px;
-    margin-left: auto;
-    margin-right: auto;
+    padding: 12px 16px;
+    margin-bottom: 14px;
+    border-radius: 12px;
+    line-height: 1.5;
+    word-wrap: break-word;
 }
 
-/* USER MESSAGE */
+/* USER (bên phải) */
 .msg.user {
-    background: #444654;
-    color: #ececf1;
-    padding: 12px 16px;
-    border-radius: 10px;
-    margin-bottom: 12px;
+    background: #505163;
+    color: #fff;
+    margin-left: auto;      /* đẩy sang phải */
+    margin-right: 40px;     /* chừa khoảng như ChatGPT */
 }
 
 .msg.user img {
     box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 
-
-/* AI MESSAGE */
+/* AI (bên trái) */
 .msg.ai {
+    background: transparent;
     color: #ececf1;
-    margin-bottom: 16px;
-    white-space: pre-wrap;
+    margin-right: auto;     /* giữ bên trái */
+    margin-left: 40px;
+    opacity: 0.95;
 }
+
 
 .input-wrapper {
     padding: 16px;

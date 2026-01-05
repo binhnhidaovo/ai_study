@@ -113,7 +113,7 @@ async function send() {
     add("user", text);
     textarea.value = "";
     textarea.style.height = "auto";
-    textarea.disabled = true;
+    textarea.readOnly = true;
 
     const typingDiv = createTypingIndicator();
     let fullText = "";
@@ -127,7 +127,7 @@ async function send() {
 
         if (!res.ok || !res.body) {
             typingDiv.innerText = "❌ Lỗi server";
-            textarea.disabled = false;
+            textarea.readOnly = false;
             return;
         }
 
@@ -150,7 +150,7 @@ async function send() {
 
                 if (line === "[DONE]") {
                     speak(fullText);
-                    textarea.disabled = false;
+                    textarea.readOnly = false;
                     return;
                 }
 
@@ -174,7 +174,7 @@ async function send() {
     } catch (e) {
         typingDiv.innerText = "❌ Lỗi kết nối";
         console.error(e);
-        textarea.disabled = false;
+        textarea.readOnly = false;
     }
 }
 

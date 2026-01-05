@@ -2,17 +2,31 @@
 let session_id = localStorage.getItem("session_id") || crypto.randomUUID();
 let sessions = JSON.parse(localStorage.getItem("sessions") || "[]");
 
-speechSynthesis.onvoiceschanged = () => {};
-
-
 if (!sessions.includes(session_id)) {
     sessions.push(session_id);
     localStorage.setItem("sessions", JSON.stringify(sessions));
 }
-
 localStorage.setItem("session_id", session_id);
 
 let autoSpeak = true;
+
+// ===== DOM =====
+const messages = document.getElementById("messages");
+const textarea = document.getElementById("input");
+
+// ===== AUTO GROW TEXTAREA =====
+textarea.addEventListener("input", () => {
+    textarea.style.height = "auto";
+    textarea.style.height = textarea.scrollHeight + "px";
+});
+
+// ===== ENTER TO SEND =====
+textarea.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        send();
+    }
+});
 
 // ===== VOICE ON / OFF =====
 function toggleSpeak() {
@@ -31,62 +45,46 @@ function add(role, text) {
 
 // ===== DETECT LANGUAGE =====
 function detectLang(text) {
-    const vietnamese =
+    const vi =
         /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i;
-    return vietnamese.test(text) ? "vi-VN" : "en-US";
+    return vi.test(text) ? "vi-VN" : "en-US";
 }
 
-
+// ===== SPEAK =====
 function speak(text) {
     if (!autoSpeak || !text.trim()) return;
 
     const utter = new SpeechSynthesisUtterance(text);
-    utter.rate = 0.95;   // chậm hơn cho tự nhiên
+    utter.rate = 0.95;
     utter.pitch = 1;
 
     const voices = speechSynthesis.getVoices();
     const lang = detectLang(text);
 
-    let selectedVoice = null;
+    utter.lang = lang;
 
-    if (lang === "vi-VN") {
-        selectedVoice = voices.find(v =>
-            v.lang.startsWith("vi") &&
-            (v.name.includes("Microsoft") || v.name.includes("Google"))
-        );
-        utter.lang = "vi-VN";
-    } else {
-        selectedVoice = voices.find(v =>
-            v.lang.startsWith("en") &&
-            (v.name.includes("Google") || v.name.includes("Microsoft"))
-        );
-        utter.lang = "en-US";
-    }
+    const voice = voices.find(v =>
+        v.lang.startsWith(lang.split("-")[0]) &&
+        (v.name.includes("Google") || v.name.includes("Microsoft"))
+    );
 
-    if (selectedVoice) {
-        utter.voice = selectedVoice;
-    }
-
+    if (voice) utter.voice = voice;
     speechSynthesis.speak(utter);
 }
 
-
+// ===== SEND (STREAM) =====
 async function send() {
-    const input = document.getElementById("input");
-    const messages = document.getElementById("messages");
-
-    const text = input.value.trim();
+    const text = textarea.value.trim();
     if (!text) return;
 
     add("user", text);
-    input.value = "";
-    input.disabled = true;
+    textarea.value = "";
+    textarea.style.height = "auto";
+    textarea.disabled = true;
 
     const aiDiv = document.createElement("div");
     aiDiv.className = "msg ai";
-    aiDiv.innerText = "";
     messages.appendChild(aiDiv);
-    messages.scrollTop = messages.scrollHeight;
 
     let fullText = "";
 
@@ -94,20 +92,17 @@ async function send() {
         const res = await fetch("/chat_stream", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                session_id: session_id,
-                message: text
-            })
+            body: JSON.stringify({ session_id, message: text })
         });
 
         if (!res.ok || !res.body) {
-            aiDiv.innerText = "❌ Lỗi kết nối server";
-            input.disabled = false;
+            aiDiv.innerText = "❌ Lỗi server";
+            textarea.disabled = false;
             return;
         }
 
         const reader = res.body.getReader();
-        const decoder = new TextDecoder("utf-8");
+        const decoder = new TextDecoder();
 
         while (true) {
             const { value, done } = await reader.read();
@@ -120,10 +115,9 @@ async function send() {
                 if (!line.startsWith("data: ")) continue;
 
                 const data = line.slice(6);
-
                 if (data === "[DONE]") {
-                    speak(fullText); // đọc sau khi stream xong
-                    input.disabled = false;
+                    speak(fullText);
+                    textarea.disabled = false;
                     return;
                 }
 
@@ -132,15 +126,14 @@ async function send() {
                 messages.scrollTop = messages.scrollHeight;
             }
         }
-    } catch (err) {
-        aiDiv.innerText = "❌ Có lỗi xảy ra";
-        console.error(err);
-        input.disabled = false;
+    } catch (e) {
+        aiDiv.innerText = "❌ Lỗi kết nối";
+        console.error(e);
+        textarea.disabled = false;
     }
 }
 
-
-
+// ===== VOICE INPUT =====
 function startVoice() {
     if (!("webkitSpeechRecognition" in window)) {
         alert("Browser không hỗ trợ voice");
@@ -148,19 +141,18 @@ function startVoice() {
     }
 
     const recognition = new webkitSpeechRecognition();
-    recognition.lang = "vi-VN"; // nói Anh vẫn nhận
+    recognition.lang = "vi-VN";
     recognition.continuous = false;
 
     recognition.onresult = (e) => {
-        document.getElementById("input").value =
-            e.results[0][0].transcript;
+        textarea.value = e.results[0][0].transcript;
         send();
     };
 
     recognition.start();
 }
 
-// ===== SIDEBAR FUNCTIONS =====
+// ===== SIDEBAR =====
 function renderChatList() {
     const list = document.getElementById("chat-list");
     if (!list) return;
@@ -183,9 +175,7 @@ async function loadChat(id) {
     const res = await fetch("/history/" + id);
     const history = await res.json();
 
-    history.forEach(m => {
-        add(m.role === "user" ? "user" : "ai", m.content);
-    });
+    history.forEach(m => add(m.role, m.content));
 }
 
 function newChat() {

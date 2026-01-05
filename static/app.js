@@ -28,12 +28,6 @@ textarea.addEventListener("keydown", (e) => {
     }
 });
 
-// ===== VOICE ON / OFF =====
-function toggleSpeak() {
-    autoSpeak = !autoSpeak;
-    alert(autoSpeak ? "Voice ON" : "Voice OFF");
-}
-
 // ===== ADD MESSAGE =====
 function add(role, text) {
     const div = document.createElement("div");
@@ -41,6 +35,16 @@ function add(role, text) {
     div.innerText = text;
     messages.appendChild(div);
     messages.scrollTop = messages.scrollHeight;
+}
+
+// ===== TYPING INDICATOR =====
+function createTypingIndicator() {
+    const div = document.createElement("div");
+    div.className = "msg ai typing";
+    div.innerHTML = "AI đang gõ<span class='dot'>.</span><span class='dot'>.</span><span class='dot'>.</span>";
+    messages.appendChild(div);
+    messages.scrollTop = messages.scrollHeight;
+    return div;
 }
 
 // ===== DETECT LANGUAGE =====
@@ -60,7 +64,6 @@ function speak(text) {
 
     const voices = speechSynthesis.getVoices();
     const lang = detectLang(text);
-
     utter.lang = lang;
 
     const voice = voices.find(v =>
@@ -72,7 +75,7 @@ function speak(text) {
     speechSynthesis.speak(utter);
 }
 
-// ===== SEND (STREAM) =====
+// ===== SEND (STREAMING) =====
 async function send() {
     const text = textarea.value.trim();
     if (!text) return;
@@ -82,9 +85,7 @@ async function send() {
     textarea.style.height = "auto";
     textarea.disabled = true;
 
-    const aiDiv = document.createElement("div");
-    aiDiv.className = "msg ai";
-    messages.appendChild(aiDiv);
+    const typingDiv = createTypingIndicator();
 
     let fullText = "";
 
@@ -96,13 +97,15 @@ async function send() {
         });
 
         if (!res.ok || !res.body) {
-            aiDiv.innerText = "❌ Lỗi server";
+            typingDiv.innerText = "❌ Lỗi server";
             textarea.disabled = false;
             return;
         }
 
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
+
+        typingDiv.innerText = "";
 
         while (true) {
             const { value, done } = await reader.read();
@@ -115,6 +118,7 @@ async function send() {
                 if (!line.startsWith("data: ")) continue;
 
                 const data = line.slice(6);
+
                 if (data === "[DONE]") {
                     speak(fullText);
                     textarea.disabled = false;
@@ -122,12 +126,12 @@ async function send() {
                 }
 
                 fullText += data;
-                aiDiv.innerText = fullText;
+                typingDiv.innerText = fullText;
                 messages.scrollTop = messages.scrollHeight;
             }
         }
     } catch (e) {
-        aiDiv.innerText = "❌ Lỗi kết nối";
+        typingDiv.innerText = "❌ Lỗi kết nối";
         console.error(e);
         textarea.disabled = false;
     }

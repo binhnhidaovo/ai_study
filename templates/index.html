@@ -7,68 +7,35 @@
 </head>
 
 <body>
-<div class="app">
+<div class="layout">
 
     <!-- SIDEBAR -->
     <aside class="sidebar">
-        <h2>AI Study</h2>
-        <button onclick="newChat()">➕ New chat</button>
+        <div class="sidebar-header">AI Study</div>
+        <button class="new-chat" onclick="newChat()">＋ New chat</button>
+        <div id="chat-list" class="chat-list"></div>
     </aside>
 
     <!-- CHAT AREA -->
-    <main class="chat">
+    <main class="chat-area">
         <div id="messages" class="messages"></div>
 
-        <!-- INPUT BAR (CHATGPT STYLE) -->
+        <!-- INPUT BAR -->
         <div class="input-wrapper">
+            <div class="input-bar">
+                <button class="icon-btn" onclick="startVoice()">🎤</button>
 
-            <!-- Voice -->
-            <button class="icon-btn" onclick="startVoice()" title="Voice">
-                🎤
-            </button>
+                <textarea
+                    id="input"
+                    rows="1"
+                    placeholder="Send a message..."
+                ></textarea>
 
-            <!-- Text input -->
-            <textarea
-                id="input"
-                placeholder="Send a message..."
-                rows="1"
-            ></textarea>
+                <input type="file" id="imageInput" accept="image/*" hidden>
+                <button class="icon-btn" onclick="imageInput.click()">🖼️</button>
 
-            <!-- Hidden image input -->
-            <input
-                type="file"
-                id="imageInput"
-                accept="image/*"
-                hidden
-            />
-
-            <!-- Upload image -->
-            <button
-                class="icon-btn"
-                onclick="document.getElementById('imageInput').click()"
-                title="Upload image"
-            >
-                🖼️
-            </button>
-
-            <!-- Send -->
-            <button
-                class="icon-btn send"
-                onclick="send()"
-                title="Send"
-            >
-                ➤
-            </button>
-
-            <!-- Speaker -->
-            <button
-                class="icon-btn"
-                onclick="toggleSpeak()"
-                title="Toggle voice"
-            >
-                🔊
-            </button>
-
+                <button class="send-btn" onclick="send()">➤</button>
+            </div>
         </div>
     </main>
 
@@ -76,4 +43,5 @@
 
 <script src="/static/app.js"></script>
 </body>
+
 </html>

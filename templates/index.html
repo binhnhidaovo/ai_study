@@ -16,28 +16,26 @@
         <div id="chat-list" class="chat-list"></div>
     </aside>
 
-    <!-- CHAT AREA -->
-    <main class="chat-area">
-        <div id="messages" class="messages"></div>
+<main class="chat">
+    <div id="messages" class="messages"></div>
 
-        <!-- INPUT BAR -->
-        <div class="input-wrapper">
-            <div class="input-bar">
-                <button class="icon-btn" onclick="startVoice()">🎤</button>
+    <div class="chat-input-wrapper">
+        <div class="input-box">
+            <button class="icon-btn" onclick="startVoice()">🎤</button>
 
-                <textarea
-                    id="input"
-                    rows="1"
-                    placeholder="Send a message..."
-                ></textarea>
+            <textarea
+                id="input"
+                rows="1"
+                placeholder="Send a message..."
+            ></textarea>
 
-                <input type="file" id="imageInput" accept="image/*" hidden>
-                <button class="icon-btn" onclick="imageInput.click()">🖼️</button>
-
-                <button class="send-btn" onclick="send()">➤</button>
-            </div>
+            <input type="file" id="imageInput" accept="image/*" hidden />
+            <button class="icon-btn" onclick="document.getElementById('imageInput').click()">🖼️</button>
+            <button class="icon-btn send" onclick="send()">➤</button>
         </div>
-    </main>
+    </div>
+</main>
+
 
 </div>
 

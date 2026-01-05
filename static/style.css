@@ -59,6 +59,13 @@ html, body {
     background: #343541;
 }
 
+.chat-image {
+    max-width: 320px;
+    border-radius: 10px;
+    margin-top: 8px;
+    display: block;
+}
+
 /* ===== MESSAGES ===== */
 .messages {
     flex: 1;
@@ -81,6 +88,11 @@ html, body {
     border-radius: 10px;
     margin-bottom: 12px;
 }
+
+.msg.user img {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
 
 /* AI MESSAGE */
 .msg.ai {

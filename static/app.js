@@ -13,6 +13,7 @@ let autoSpeak = true;
 // ===== DOM =====
 const messages = document.getElementById("messages");
 const textarea = document.getElementById("input");
+const imageInput = document.getElementById("imageInput");
 
 // ===== AUTO GROW TEXTAREA =====
 textarea.addEventListener("input", () => {
@@ -28,6 +29,17 @@ textarea.addEventListener("keydown", (e) => {
     }
 });
 
+// ===== IMAGE UPLOAD PREVIEW =====
+imageInput.addEventListener("change", () => {
+    const file = imageInput.files[0];
+    if (!file) return;
+
+    previewImage(file);
+
+    // reset để chọn lại cùng file vẫn trigger
+    imageInput.value = "";
+});
+
 // ===== ADD MESSAGE =====
 function add(role, text) {
     const div = document.createElement("div");
@@ -35,6 +47,25 @@ function add(role, text) {
     div.innerText = text;
     messages.appendChild(div);
     messages.scrollTop = messages.scrollHeight;
+}
+
+function previewImage(file) {
+    const reader = new FileReader();
+
+    reader.onload = () => {
+        const wrapper = document.createElement("div");
+        wrapper.className = "msg user";
+
+        const img = document.createElement("img");
+        img.src = reader.result;
+        img.className = "chat-image";
+
+        wrapper.appendChild(img);
+        messages.appendChild(wrapper);
+        messages.scrollTop = messages.scrollHeight;
+    };
+
+    reader.readAsDataURL(file);
 }
 
 // ===== TYPING INDICATOR =====
@@ -78,7 +109,7 @@ function speak(text) {
 // ===== SEND (STREAMING) =====
 async function send() {
     const text = textarea.value.trim();
-    if (/```|function|const|let|=>/.test(text)) return;
+    if (!text && imageInput.files.length === 0) return;
     if (!text) return;
 
     add("user", text);

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
     <title>AI Study Chat</title>
@@ -22,25 +22,35 @@
         <!-- MESSAGES -->
         <div id="messages" class="messages"></div>
 
-        <!-- INPUT -->
-        <div class="input-wrapper">
-            <div class="input-bar">
+    <div class="input-wrapper">
+  <div class="input-bar">
 
-                <button class="icon-btn" onclick="startVoice()">🎤</button>
+    <!-- Upload image -->
+    <button class="icon-btn" onclick="document.getElementById('imageInput').click()" title="Upload image">
+      🖼️
+    </button>
+    <input type="file" id="imageInput" accept="image/*" hidden />
 
-                <textarea
-                    id="input"
-                    placeholder="Send a message..."
-                    rows="1"
-                ></textarea>
+    <!-- Textarea -->
+    <textarea
+      id="input"
+      placeholder="Send a message..."
+      rows="1"
+    ></textarea>
 
-                <button class="send-btn" onclick="send()">➤</button>
-
-            </div>
-        </div>
-
-    </main>
-
+    <!-- Mute / unmute -->
+    <form>
+        <button class="icon-btn" onclick="toggleSpeak()" title="Mute / Unmute">
+        🔊
+        </button>
+    <form>
+    <!-- Send -->
+    <form>
+        <button class="send-btn" onclick="send()" title="Send">
+        ➤
+        </button>
+    <form>
+  </div>
 </div>
 
 <script src="/static/app.js"></script>

@@ -101,66 +101,57 @@ html, body {
     white-space: pre-wrap;
 }
 
-/* ===== INPUT BAR ===== */
 .input-wrapper {
-    position: sticky;
-    bottom: 0;
-    background: #343541;
-    border-top: 1px solid #4d4d4f;
     padding: 16px;
+    border-top: 1px solid #4a4b57;
+    background: #343541;
 }
 
-/* INPUT CONTAINER */
 .input-bar {
-    max-width: 720px;
-    margin: 0 auto;
     display: flex;
     align-items: flex-end;
-    gap: 8px;
+    gap: 10px;
     background: #40414f;
-    border-radius: 12px;
+    border-radius: 14px;
     padding: 10px 12px;
+    max-width: 900px;
+    margin: 0 auto;
 }
 
-/* TEXTAREA */
 textarea {
     flex: 1;
-    resize: none;
     background: transparent;
     border: none;
     outline: none;
     color: #ececf1;
     font-size: 15px;
+    resize: none;
     line-height: 1.4;
     max-height: 200px;
 }
 
-/* ICON BUTTON */
 .icon-btn {
-    background: none;
+    background: transparent;
     border: none;
     color: #c5c5d2;
     font-size: 18px;
     cursor: pointer;
-    padding: 6px;
-    border-radius: 6px;
 }
 
 .icon-btn:hover {
-    background: #4d4d4f;
-    color: #ffffff;
+    color: white;
 }
 
-/* SEND BUTTON */
 .send-btn {
     background: #19c37d;
     border: none;
-    color: #ffffff;
-    font-size: 15px;
-    padding: 6px 12px;
-    border-radius: 8px;
+    color: white;
+    font-size: 16px;
+    padding: 8px 12px;
+    border-radius: 10px;
     cursor: pointer;
 }
+
 
 .send-btn:hover {
     opacity: 0.9;

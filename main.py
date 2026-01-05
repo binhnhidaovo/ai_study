@@ -20,6 +20,12 @@ def home():
     with open("templates/index.html", "r", encoding="utf-8") as f:
         return f.read()
 
+# ================== CHAT HISTORY ==================
+@app.get("/history/{session_id}")
+def get_history(session_id: str):
+    return sessions.get(session_id, [])
+
+
 @app.post("/chat_stream")
 async def chat_stream(
     message: str = Form(...)

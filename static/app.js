@@ -4,7 +4,7 @@ const textarea = document.getElementById("input");
 function add(text) {
     const div = document.createElement("div");
     div.className = "msg";
-    div.innerText = text;
+    div.innerText = text || "";
     messages.appendChild(div);
     messages.scrollTop = messages.scrollHeight;
 }
